@@ -4,7 +4,9 @@
 int3 size;
 float cutoff;
 AppendStructuredBuffer<Triangle> triangles;
-RWStructuredBuffer<float4> points;
+RWStructuredBuffer<float4> values;
+
+struct Triangle { float3 a, b, c; };
 
 [numthreads(8, 8, 1)]
 void March(uint3 id : SV_DispatchThreadID) {
@@ -15,40 +17,57 @@ void March(uint3 id : SV_DispatchThreadID) {
 
 	// Cube is defined by it's corners.
 	float4 corners[8] = {
-		points[GetCornerIndex(id.x + 0, id.y + 0, id.z + 0)],
-		points[GetCornerIndex(id.x + 1, id.y + 0, id.z + 0)],
-		points[GetCornerIndex(id.x + 1, id.y + 0, id.z + 1)],
-		points[GetCornerIndex(id.x + 0, id.y + 0, id.z + 1)],
-		points[GetCornerIndex(id.x + 0, id.y + 1, id.z + 0)],
-		points[GetCornerIndex(id.x + 1, id.y + 1, id.z + 0)],
-		points[GetCornerIndex(id.x + 1, id.y + 1, id.z + 1)],
-		points[GetCornerIndex(id.x + 0, id.y + 1, id.z + 1)]
+		values[GetCornerIndex(id.x + 0, id.y + 0, id.z + 0)],
+		values[GetCornerIndex(id.x + 1, id.y + 0, id.z + 0)],
+		values[GetCornerIndex(id.x + 1, id.y + 0, id.z + 1)],
+		values[GetCornerIndex(id.x + 0, id.y + 0, id.z + 1)],
+		values[GetCornerIndex(id.x + 0, id.y + 1, id.z + 0)],
+		values[GetCornerIndex(id.x + 1, id.y + 1, id.z + 0)],
+		values[GetCornerIndex(id.x + 1, id.y + 1, id.z + 1)],
+		values[GetCornerIndex(id.x + 0, id.y + 1, id.z + 1)]
 	};
 
-	// Triangulation index is defined by the cube.
+	// Index is defined by the cube.
 	int index = 0;
 	for (int bit = 0; bit < 8; bit++) {
-		index |= (corners[bit].w < cutoff) << bit;
+		// Add the corners that are above the cutoff to the index.
+		index |= (corners[bit].w > cutoff) << bit;
 	}
 
 	// Add triangles from the triangulation.
 	for (int i = 0; triangulation[cubeIndex][i] != -1; i += 3) {
 
-		Triangle trianlge;
-		for (int j = 0; j < 3; j++) {
-			int a = cornerIndexAFromEdge[triangulation[index][i + j]];
-			int b = cornerIndexBFromEdge[triangulation[index][i + j]];
-			trianlge.verticies[j] = InterpolateVerticies(corners[a], corners[b]);
+		Triangle tri;
+
+		// Add point 'a' to the triangle.
+		{
+			int a = cornerIndexAFromEdge[triangulation[index][i + 0]];
+			int b = cornerIndexAFromEdge[triangulation[index][i + 0]];
+			tri.a = InterpolateVerticies(corners[a], corners[b]);
 		}
-		triangles.Append(triangle);
+
+		// Add point 'b' to the triangle.
+		{
+			int a = cornerIndexAFromEdge[triangulation[index][i + 1]];
+			int b = cornerIndexAFromEdge[triangulation[index][i + 1]];
+			tri.a = InterpolateVerticies(corners[a], corners[b]);
+		}
+
+		// Add point 'c' to the triangle.
+		{
+			int a = cornerIndexAFromEdge[triangulation[index][i + 2]];
+			int b = cornerIndexAFromEdge[triangulation[index][i + 2]];
+			tri.a = InterpolateVerticies(corners[a], corners[b]);
+		}
+
+		triangles.Append(tri);
 
 	}
 
 }
 
-struct Triangle { float3 verticies[3]; };
-
 int GetCornerIndex(int3 corner) {
+	// x + y*WIDTH + z*WIDTH*DEPTH
 	return corner.x + size.x * (corner.y + size.y * corner.z);
 }
 

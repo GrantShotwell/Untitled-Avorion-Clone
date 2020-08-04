@@ -1,0 +1,10 @@
+﻿#pragma kernel Density
+
+RWStructuredBuffer<float4> points;
+
+[numthreads(8,8,1)]
+void Density (uint3 id : SV_DispatchThreadID) {
+
+
+
+}
