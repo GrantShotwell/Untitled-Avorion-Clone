@@ -1,7 +1,4 @@
-﻿#pragma kernel Cube
-
-float3 center;
-float radius;
+﻿#pragma kernel ComputeSphere
 
 int3 size;
 RWStructuredBuffer<float4> points;
@@ -17,22 +14,17 @@ int GetIndex(uint3 id) {
 }
 
 [numthreads(1, 1, 1)]
-void Cube (uint3 id : SV_DispatchThreadID) {
+void ComputeSphere (uint3 id : SV_DispatchThreadID) {
 
 	float4 p;
 	p.x = (float)id.x;
 	p.y = (float)id.y;
 	p.z = (float)id.z;
 
-	if (p.x == 0 || p.x == size.x - 1 || p.y == 0 || p.y == size.y - 1 || p.z == 0 || p.z == size.z - 1) {
+	{
 
+		// TODO:  code for sphere
 		p.w = 0;
-
-	}
-
-	else {
-
-		p.w = 1;
 
 	}
 

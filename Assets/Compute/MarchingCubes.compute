@@ -12,7 +12,7 @@ float cutoff;
 AppendStructuredBuffer<Triangle> triangles;
 RWStructuredBuffer<float4> points;
 
-int GetCornerIndex(uint3 index) {
+int GetIndex(uint3 index) {
 	// x + y*WIDTH + z*WIDTH*DEPTH
 	return index.x + size.x * (index.y + size.y * index.z);
 }
@@ -29,14 +29,14 @@ void March(uint3 id : SV_DispatchThreadID) {
 
 	// Cube is defined by its corners.
 	float4 corners[8] = {
-		points[GetCornerIndex(uint3(id.x + 0, id.y + 0, id.z + 0))],
-		points[GetCornerIndex(uint3(id.x + 1, id.y + 0, id.z + 0))],
-		points[GetCornerIndex(uint3(id.x + 1, id.y + 0, id.z + 1))],
-		points[GetCornerIndex(uint3(id.x + 0, id.y + 0, id.z + 1))],
-		points[GetCornerIndex(uint3(id.x + 0, id.y + 1, id.z + 0))],
-		points[GetCornerIndex(uint3(id.x + 1, id.y + 1, id.z + 0))],
-		points[GetCornerIndex(uint3(id.x + 1, id.y + 1, id.z + 1))],
-		points[GetCornerIndex(uint3(id.x + 0, id.y + 1, id.z + 1))]
+		points[GetIndex(uint3(id.x + 0, id.y + 0, id.z + 0))],
+		points[GetIndex(uint3(id.x + 1, id.y + 0, id.z + 0))],
+		points[GetIndex(uint3(id.x + 1, id.y + 0, id.z + 1))],
+		points[GetIndex(uint3(id.x + 0, id.y + 0, id.z + 1))],
+		points[GetIndex(uint3(id.x + 0, id.y + 1, id.z + 0))],
+		points[GetIndex(uint3(id.x + 1, id.y + 1, id.z + 0))],
+		points[GetIndex(uint3(id.x + 1, id.y + 1, id.z + 1))],
+		points[GetIndex(uint3(id.x + 0, id.y + 1, id.z + 1))]
 	};
 
 	// Index is defined by the cube.

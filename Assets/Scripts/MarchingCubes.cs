@@ -20,10 +20,10 @@ public class MarchingCubes : MonoBehaviour {
 
     void Start() {
         field = GetComponent<DensityField>();
+        field.update += new DensityField.NeedsUpdate(() => { needsUpdate = true; });
         mesh = GetComponent<MeshFilter>().mesh;
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         if(TryGetComponent(out MeshCollider collider)) collider.sharedMesh = mesh;
-        field.settingsUpdate += new DensityField.SettingsUpdate(() => { needsUpdate = true; });
     }
 
     void Update() {
@@ -99,7 +99,7 @@ public class MarchingCubes : MonoBehaviour {
         Vector3Int voxels = field.size - Vector3Int.one;
         int numVoxels = voxels.x * voxels.y * voxels.z;
 
-        valBuffer = field.pointsBuffer;
+        valBuffer = field.points;
 
         triBuffer = new ComputeBuffer(numVoxels * 5, sizeof(float) * 3 * 3, ComputeBufferType.Append);
         triBuffer.SetCounterValue(0);
