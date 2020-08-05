@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(TerrainValues))]
+[RequireComponent(typeof(DensityField))]
 [RequireComponent(typeof(MeshFilter))]
 public class MarchingCubes : MonoBehaviour {
-
-    MeshCollider meshCollider;
 
     public ComputeShader shader;
     ComputeBuffer triBuffer, triCount, valBuffer;
@@ -15,28 +13,24 @@ public class MarchingCubes : MonoBehaviour {
     Vector3[] verticies;
     int[] triangles;
 
-    TerrainValues terrain;
+    DensityField field;
 
     [HideInInspector]
     public bool needsUpdate = false;
 
     void Start() {
-        terrain = GetComponent<TerrainValues>();
+        field = GetComponent<DensityField>();
         mesh = GetComponent<MeshFilter>().mesh;
-        terrain.settingsUpdate += new TerrainValues.SettingsUpdate(() => { needsUpdate = true; });
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        if(TryGetComponent(out MeshCollider collider)) collider.sharedMesh = mesh;
+        field.settingsUpdate += new DensityField.SettingsUpdate(() => { needsUpdate = true; });
     }
 
     void Update() {
-
-        if(meshCollider != null || TryGetComponent(out meshCollider)) {
-            meshCollider.sharedMesh = mesh;
-        }
-
         if(needsUpdate) {
             UpdateMesh();
             needsUpdate = false;
         }
-
     }
 
     void OnValidate() {
@@ -65,11 +59,11 @@ public class MarchingCubes : MonoBehaviour {
         // Set parameters for the compute shader.
         shader.SetBuffer(0, "points", valBuffer);
         shader.SetBuffer(0, "triangles", triBuffer);
-        shader.SetInts("size", terrain.size.x, terrain.size.y, terrain.size.z);
+        shader.SetInts("size", field.size.x, field.size.y, field.size.z);
         shader.SetFloat("cutoff", 0);
 
         // Run rhe compute shader.
-        shader.Dispatch(0, terrain.size.x, terrain.size.y, terrain.size.z);
+        shader.Dispatch(0, field.size.x, field.size.y, field.size.z);
 
         // Get results from the compute shader.
         ComputeBuffer.CopyCount(triBuffer, triCount, 0);
@@ -102,10 +96,10 @@ public class MarchingCubes : MonoBehaviour {
 
         DisposeBuffers();
 
-        Vector3Int voxels = terrain.size - Vector3Int.one;
+        Vector3Int voxels = field.size - Vector3Int.one;
         int numVoxels = voxels.x * voxels.y * voxels.z;
 
-        valBuffer = terrain.pointsBuffer;
+        valBuffer = field.pointsBuffer;
 
         triBuffer = new ComputeBuffer(numVoxels * 5, sizeof(float) * 3 * 3, ComputeBufferType.Append);
         triBuffer.SetCounterValue(0);

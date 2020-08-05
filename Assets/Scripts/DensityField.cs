@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TerrainValues : MonoBehaviour {
+public class DensityField : MonoBehaviour {
+
 
     public ComputeShader shader;
+    public string kernel;
     public ComputeBuffer pointsBuffer;
     public Vector3Int size;
 
@@ -49,15 +51,16 @@ public class TerrainValues : MonoBehaviour {
     void GenerateValues() {
 
         CreateBuffers();
+        int kernelIndex = shader.FindKernel(kernel);
 
         // Set parameters for the compute shader.
         shader.SetFloats("center", center.x, center.y, center.z);
         shader.SetFloat("radius", radius);
         shader.SetInts("size", size.x, size.y, size.z);
-        shader.SetBuffer(0, "points", pointsBuffer);
+        shader.SetBuffer(kernelIndex, "points", pointsBuffer);
 
         // Run the compute shader.
-        shader.Dispatch(0, size.x, size.y, size.z);
+        shader.Dispatch(kernelIndex, size.x, size.y, size.z);
 
     }
 
