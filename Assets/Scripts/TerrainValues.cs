@@ -13,11 +13,13 @@ public class TerrainValues : MonoBehaviour {
     public Vector3Int size => new Vector3Int(values.GetLength(0), values.GetLength(1), values.GetLength(2));
 
     void Start() {
-        values = new float[8, 8, 8];
-        GenerateValues();
+        values = new float[4, 4, 4];
+        GenerateValues(seed: 1);
     }
 
-    void GenerateValues() {
+    void GenerateValues(int? seed = null) {
+
+        if(seed.HasValue) NoiseS3D.seed = seed.Value;
 
         int x = values.GetLength(0), y = values.GetLength(1), z = values.GetLength(2);
         for(int ix = 0; ix < x; ix++) {
@@ -33,7 +35,7 @@ public class TerrainValues : MonoBehaviour {
 
     }
 
-    void OnDrawGizmosSelected() {
+    void OnDrawGizmos() {
 
         if(values == null) return;
 

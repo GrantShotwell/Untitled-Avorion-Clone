@@ -1,5 +1,4 @@
-﻿﻿// Values from http://paulbourke.net/geometry/polygonise/
-
+﻿
 static const int edges[256] = {
     0x0,
     0x109,
