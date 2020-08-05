@@ -52,7 +52,7 @@ public class MarchingCubes : MonoBehaviour {
         int[] count = { 0 };
         triCount.GetData(count);
         Triangle[] tris = new Triangle[count[0]];
-        triBuffer.GetData(tris, 0, 0, count[0]);
+        triBuffer.GetData(tris, 0, 0, count[0]); // TODO:  sometimes gives an error for trying to access too much information.
 
         // Create a list of verticies and indicies
         List<Vector3> points = new List<Vector3>(tris.Length * 3);

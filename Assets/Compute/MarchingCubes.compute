@@ -22,11 +22,23 @@ float3 InterpolateVerticies(float4 v1, float4 v2) {
 	return v1.xyz + t * (v2.xyz - v1.xyz);
 }
 
+// TODO:  not sure if it's a problem with MarchingCubes.compute or MarchingCubes.cs, but this seems to give the wrong triangles. (there should be a lot more)
+
 [numthreads(8, 8, 1)]
 void March(uint3 id : SV_DispatchThreadID) {
 
 	if ((int)id.x >= size.x - 1 || (int)id.y >= size.y - 1 || (int)id.z >= size.z - 1)
 		return;
+
+	// DEBUG
+	if (false) {
+		Triangle debugs;
+		debugs.a = float3((float)id.x, (float)id.y, (float)id.z);
+		debugs.b = float3((float)size.x, (float)size.y, (float)size.z);
+		debugs.c = float3(0, 0, 0);
+		triangles.Append(debugs);
+		return;
+	}
 
 	// Cube is defined by its corners.
 	float4 corners[8] = {
