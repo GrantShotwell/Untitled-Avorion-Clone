@@ -1,11 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 [RequireComponent(typeof(TerrainValues))]
 [RequireComponent(typeof(MeshFilter))]
 public class MarchingCubes : MonoBehaviour {
+
+    MeshCollider meshCollider;
 
     public ComputeShader shader;
     ComputeBuffer triBuffer, triCount, valBuffer;
@@ -19,8 +20,6 @@ public class MarchingCubes : MonoBehaviour {
     [HideInInspector]
     public bool needsUpdate = false;
 
-    public int triangleCount = 0;
-
     void Start() {
         terrain = GetComponent<TerrainValues>();
         mesh = GetComponent<MeshFilter>().mesh;
@@ -28,10 +27,16 @@ public class MarchingCubes : MonoBehaviour {
     }
 
     void Update() {
+
+        if(meshCollider != null || TryGetComponent(out meshCollider)) {
+            meshCollider.sharedMesh = mesh;
+        }
+
         if(needsUpdate) {
             UpdateMesh();
             needsUpdate = false;
         }
+
     }
 
     void OnValidate() {
@@ -72,8 +77,6 @@ public class MarchingCubes : MonoBehaviour {
         triCount.GetData(count);
         Triangle[] tris = new Triangle[count[0]];
         triBuffer.GetData(tris, 0, 0, count[0]);
-
-        triangleCount = count[0];
 
         // Create a list of verticies and indicies
         List<Vector3> points = new List<Vector3>(tris.Length * 3);
