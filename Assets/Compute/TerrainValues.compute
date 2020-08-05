@@ -1,10 +1,42 @@
-﻿#pragma kernel Density
+﻿#pragma kernel ComputeCube
 
+float3 center;
+float radius;
+
+int3 size;
 RWStructuredBuffer<float4> points;
 
-[numthreads(8,8,1)]
-void Density (uint3 id : SV_DispatchThreadID) {
+struct Value {
+	int3 index;
+	float4 p;
+};
 
+int GetIndex(uint3 id) {
+	// x + y*WIDTH + z*WIDTH*DEPTH
+	return id.x + size.x * (id.y + size.y * id.z);
+}
 
+[numthreads(1, 1, 1)]
+void ComputeCube (uint3 id : SV_DispatchThreadID) {
+
+	float4 p;
+	p.x = (float)id.x;
+	p.y = (float)id.y;
+	p.z = (float)id.z;
+
+	if (p.x == 0 || p.x == size.x - 1 || p.y == 0 || p.y == size.y - 1 || p.z == 0 || p.z == size.z - 1) {
+
+		p.w = 0;
+
+	}
+
+	else {
+
+		p.w = 1;
+
+	}
+
+	points[GetIndex(id)] = p;
+	return;
 
 }

@@ -16,11 +16,30 @@ public class MarchingCubes : MonoBehaviour {
 
     TerrainValues terrain;
 
+    [HideInInspector]
+    public bool needsUpdate = false;
+
+    public int triangleCount = 0;
 
     void Start() {
         terrain = GetComponent<TerrainValues>();
         mesh = GetComponent<MeshFilter>().mesh;
-        UpdateMesh();
+        terrain.settingsUpdate += new TerrainValues.SettingsUpdate(() => { needsUpdate = true; });
+    }
+
+    void Update() {
+        if(needsUpdate) {
+            UpdateMesh();
+            needsUpdate = false;
+        }
+    }
+
+    void OnValidate() {
+        needsUpdate = true;
+    }
+
+    void OnDestroy() {
+        DisposeBuffers();
     }
 
     void UpdateMesh() {
@@ -38,21 +57,23 @@ public class MarchingCubes : MonoBehaviour {
 
         CreateBuffers();
 
-        // Set parameters for compute shader.
-        shader.SetBuffer(0, "values", valBuffer);
+        // Set parameters for the compute shader.
+        shader.SetBuffer(0, "points", valBuffer);
         shader.SetBuffer(0, "triangles", triBuffer);
         shader.SetInts("size", terrain.size.x, terrain.size.y, terrain.size.z);
-        shader.SetFloat("cutoff", terrain.cutoff);
+        shader.SetFloat("cutoff", 0);
 
-        // Run compute shader.
+        // Run rhe compute shader.
         shader.Dispatch(0, terrain.size.x, terrain.size.y, terrain.size.z);
 
-        // Get results from compute shader.
+        // Get results from the compute shader.
         ComputeBuffer.CopyCount(triBuffer, triCount, 0);
         int[] count = { 0 };
         triCount.GetData(count);
         Triangle[] tris = new Triangle[count[0]];
-        triBuffer.GetData(tris, 0, 0, count[0]); // TODO:  sometimes gives an error for trying to access too much information.
+        triBuffer.GetData(tris, 0, 0, count[0]);
+
+        triangleCount = count[0];
 
         // Create a list of verticies and indicies
         List<Vector3> points = new List<Vector3>(tris.Length * 3);
@@ -76,14 +97,14 @@ public class MarchingCubes : MonoBehaviour {
 
     void CreateBuffers() {
 
-        Vector3Int points = terrain.size;
-        int numPoints = points.x * points.y * points.z;
-        int numVoxels = (points.x - 1) * (points.y - 1) * (points.z - 1) * 5;
+        DisposeBuffers();
 
-        valBuffer = new ComputeBuffer(numPoints, sizeof(float) * 4);
-        valBuffer.SetData(terrain.values);
+        Vector3Int voxels = terrain.size - Vector3Int.one;
+        int numVoxels = voxels.x * voxels.y * voxels.z;
 
-        triBuffer = new ComputeBuffer(numVoxels, sizeof(float) * 3 * 3, ComputeBufferType.Append);
+        valBuffer = terrain.pointsBuffer;
+
+        triBuffer = new ComputeBuffer(numVoxels * 5, sizeof(float) * 3 * 3, ComputeBufferType.Append);
         triBuffer.SetCounterValue(0);
 
         triCount = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
@@ -92,9 +113,8 @@ public class MarchingCubes : MonoBehaviour {
 
     void DisposeBuffers() {
 
-        valBuffer.Dispose();
-        triBuffer.Dispose();
-        triCount.Dispose();
+        triBuffer?.Dispose();
+        triCount?.Dispose();
 
     }
 

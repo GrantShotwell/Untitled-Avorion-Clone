@@ -10,11 +10,11 @@ struct Triangle {
 int3 size;
 float cutoff;
 AppendStructuredBuffer<Triangle> triangles;
-RWStructuredBuffer<float4> values;
+RWStructuredBuffer<float4> points;
 
-int GetCornerIndex(int3 corner) {
+int GetCornerIndex(uint3 index) {
 	// x + y*WIDTH + z*WIDTH*DEPTH
-	return corner.x + size.x * (corner.y + size.y * corner.z);
+	return index.x + size.x * (index.y + size.y * index.z);
 }
 
 float3 InterpolateVerticies(float4 v1, float4 v2) {
@@ -22,34 +22,21 @@ float3 InterpolateVerticies(float4 v1, float4 v2) {
 	return v1.xyz + t * (v2.xyz - v1.xyz);
 }
 
-// TODO:  not sure if it's a problem with MarchingCubes.compute or MarchingCubes.cs, but this seems to give the wrong triangles. (there should be a lot more)
 
-[numthreads(8, 8, 1)]
+
+[numthreads(1, 1, 1)]
 void March(uint3 id : SV_DispatchThreadID) {
-
-	if ((int)id.x >= size.x - 1 || (int)id.y >= size.y - 1 || (int)id.z >= size.z - 1)
-		return;
-
-	// DEBUG
-	if (false) {
-		Triangle debugs;
-		debugs.a = float3((float)id.x, (float)id.y, (float)id.z);
-		debugs.b = float3((float)size.x, (float)size.y, (float)size.z);
-		debugs.c = float3(0, 0, 0);
-		triangles.Append(debugs);
-		return;
-	}
 
 	// Cube is defined by its corners.
 	float4 corners[8] = {
-		values[GetCornerIndex(float3(id.x + 0, id.y + 0, id.z + 0))],
-		values[GetCornerIndex(float3(id.x + 1, id.y + 0, id.z + 0))],
-		values[GetCornerIndex(float3(id.x + 1, id.y + 0, id.z + 1))],
-		values[GetCornerIndex(float3(id.x + 0, id.y + 0, id.z + 1))],
-		values[GetCornerIndex(float3(id.x + 0, id.y + 1, id.z + 0))],
-		values[GetCornerIndex(float3(id.x + 1, id.y + 1, id.z + 0))],
-		values[GetCornerIndex(float3(id.x + 1, id.y + 1, id.z + 1))],
-		values[GetCornerIndex(float3(id.x + 0, id.y + 1, id.z + 1))]
+		points[GetCornerIndex(uint3(id.x + 0, id.y + 0, id.z + 0))],
+		points[GetCornerIndex(uint3(id.x + 1, id.y + 0, id.z + 0))],
+		points[GetCornerIndex(uint3(id.x + 1, id.y + 0, id.z + 1))],
+		points[GetCornerIndex(uint3(id.x + 0, id.y + 0, id.z + 1))],
+		points[GetCornerIndex(uint3(id.x + 0, id.y + 1, id.z + 0))],
+		points[GetCornerIndex(uint3(id.x + 1, id.y + 1, id.z + 0))],
+		points[GetCornerIndex(uint3(id.x + 1, id.y + 1, id.z + 1))],
+		points[GetCornerIndex(uint3(id.x + 0, id.y + 1, id.z + 1))]
 	};
 
 	// Index is defined by the cube.
