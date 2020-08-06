@@ -24,8 +24,8 @@ void ComputeSphere (uint3 id : SV_DispatchThreadID) {
 	p.z = (float)id.z;
 
 	{
-		float squared = pow(p.x-center.x,2) + pow(p.y-center.y,,2) + pow(p.z-center.z,,2);
-		p.w = sqrt(abs(squared));
+		float distanceSqrd = pow(p.x - center.x, 2) + pow(p.y - center.y, 2) + pow(p.z - center.z, 2);
+		p.w = radius - sqrt(distanceSqrd);
 	}
 
 	points[GetIndex(id)] = p;
