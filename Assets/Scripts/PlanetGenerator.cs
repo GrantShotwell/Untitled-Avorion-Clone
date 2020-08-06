@@ -65,52 +65,32 @@ public class PlanetGenerator : MonoBehaviour {
 
 	void UpdateChunksArray() {
 
-		// How many chunks do we need to fill at least one (radius + buffer)?
-		float buffered = radius + buffer;
-		Vector3Int newSize = new Vector3Int(
-			Mathf.CeilToInt(buffered / chunkSize.x * 2),
-			Mathf.CeilToInt(buffered / chunkSize.y * 2),
-			Mathf.CeilToInt(buffered / chunkSize.z * 2));
-		Vector3Int halfSize = newSize / 2;
-		GameObject[,,] newChunks = new GameObject[newSize.x, newSize.y, newSize.z];
+		// Remove old array.
+		foreach(GameObject chunk in chunks) {
+			Destroy(chunk);
+		}
 
-		int maxX = Math.Max(gridSize.x, newSize.x);
-		int maxY = Math.Max(gridSize.y, newSize.y);
-		int maxZ = Math.Max(gridSize.z, newSize.z);
-		for(int x = 0; x < maxX; x++) {
-			for(int y = 0; y < maxY; y++) {
-				for(int z = 0; z < maxZ; z++) {
+		// Create new array.
+		gridSize = new Vector3Int(
+			Mathf.CeilToInt((radius + buffer) / chunkSize.x * 2),
+			Mathf.CeilToInt((radius + buffer) / chunkSize.y * 2),
+			Mathf.CeilToInt((radius + buffer) / chunkSize.z * 2));
+		chunks = new GameObject[gridSize.x, gridSize.y, gridSize.z];
 
-					if(x >= newSize.x || y >= newSize.z || z >= newSize.z) {
-						Destroy(chunks[x, y, z]);
-					} else {
-						GameObject oldChunk;
-						if(x < gridSize.x && y < gridSize.y && z < gridSize.z) {
-							oldChunk = chunks[x, y, z];
-						} else {
-							oldChunk = Instantiate(prefab, transform);
-							Vector3Int indexPos = new Vector3Int(
-								x * newSize.x - halfSize.x,
-								y * newSize.y - halfSize.y,
-								z * newSize.z - halfSize.z);
-							if(indexPos.x > 0) indexPos.x -= 1;
-							if(indexPos.y > 0) indexPos.y -= 1;
-							if(indexPos.z > 0) indexPos.z -= 1;
-							oldChunk.transform.localPosition = new Vector3(
-								indexPos.x * chunkSize.x,
-								indexPos.y * chunkSize.y,
-								indexPos.z * chunkSize.z);
-						}
-						newChunks[x, y, z] = oldChunk;
-					}
+		// Fill new array.
+		for(int x = 0; x < gridSize.x; x++) {
+			for(int y = 0; y < gridSize.x; y++) {
+				for(int z = 0; z < gridSize.x; z++) {
+
+					GameObject chunk = Instantiate(prefab, transform);
+					chunk.name = prefab.name;
+					chunk.transform.localPosition = new Vector3Int(x, y, z) * chunkSize;
+					chunk.transform.localPosition -= gridSize * chunkSize / 2;
+					chunks[x, y, z] = chunk;
 
 				}
 			}
 		}
-
-		// Apply new array.
-		chunks = newChunks;
-		gridSize = newSize;
 
 	}
 

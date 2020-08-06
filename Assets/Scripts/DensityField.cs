@@ -49,6 +49,9 @@ public class DensityField : MonoBehaviour {
 			}
 		}
 
+		top += Vector3.one / 2;
+		btm -= Vector3.one / 2;
+
 		// Draw bounding box.
 		Gizmos.color = Color.white;
 		Vector3 TTT = new Vector3(top.x, top.y, top.z) + transform.position;
