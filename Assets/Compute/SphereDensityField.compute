@@ -2,6 +2,8 @@
 
 int3 size;
 RWStructuredBuffer<float4> points;
+float3 center;
+float radius;
 
 struct Value {
 	int3 index;
@@ -22,10 +24,8 @@ void ComputeSphere (uint3 id : SV_DispatchThreadID) {
 	p.z = (float)id.z;
 
 	{
-
-		// TODO:  code for sphere
-		p.w = 0;
-
+		float squared = pow(p.x-center.x,2) + pow(p.y-center.y,,2) + pow(p.z-center.z,,2);
+		p.w = sqrt(abs(squared));
 	}
 
 	points[GetIndex(id)] = p;
