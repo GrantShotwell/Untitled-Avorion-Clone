@@ -36,9 +36,10 @@ public class EditorConfigSolutionFileGenerator
 
 	protected static string AppendEditorConfig(string fileName, string fileContent)
 	{
-		fileContent = fileContent.Replace( kEditorConfigProjectFindStr, kEditorConfigProjectReplaceStr );
-		fileContent = fileContent.Replace( kGlobalSectionFindStr, kGlobalSectionReplaceStr );
 
+		//fileContent = fileContent.Replace( kGlobalSectionFindStr, kGlobalSectionReplaceStr );
+		//fileContent = fileContent.Replace( kEditorConfigProjectFindStr, kEditorConfigProjectReplaceStr );
+		
 		return fileContent;
 	}
 }

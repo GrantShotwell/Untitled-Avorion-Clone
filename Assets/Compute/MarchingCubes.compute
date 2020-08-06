@@ -23,19 +23,16 @@ float3 InterpolateVerticies(float4 v1, float4 v2) {
 [numthreads(1, 1, 1)]
 void March(uint3 id : SV_DispatchThreadID) {
 
-	if (!IsWithinSize(id))
-		return;
-
 	// Cube is defined by its corners.
 	float4 corners[8] = {
-		points[GetIndex(uint3(id.x + 0, id.y + 0, id.z + 0))],
-		points[GetIndex(uint3(id.x + 1, id.y + 0, id.z + 0))],
-		points[GetIndex(uint3(id.x + 1, id.y + 0, id.z + 1))],
-		points[GetIndex(uint3(id.x + 0, id.y + 0, id.z + 1))],
-		points[GetIndex(uint3(id.x + 0, id.y + 1, id.z + 0))],
-		points[GetIndex(uint3(id.x + 1, id.y + 1, id.z + 0))],
-		points[GetIndex(uint3(id.x + 1, id.y + 1, id.z + 1))],
-		points[GetIndex(uint3(id.x + 0, id.y + 1, id.z + 1))]
+		points[GetIndex(id + uint3(0, 0, 0))],
+		points[GetIndex(id + uint3(1, 0, 0))],
+		points[GetIndex(id + uint3(1, 0, 1))],
+		points[GetIndex(id + uint3(0, 0, 1))],
+		points[GetIndex(id + uint3(0, 1, 0))],
+		points[GetIndex(id + uint3(1, 1, 0))],
+		points[GetIndex(id + uint3(1, 1, 1))],
+		points[GetIndex(id + uint3(0, 1, 1))]
 	};
 
 	// Index is defined by the cube.

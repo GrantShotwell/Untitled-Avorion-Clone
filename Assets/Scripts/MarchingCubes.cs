@@ -14,30 +14,45 @@ public class MarchingCubes : MonoBehaviour {
 
 	DensityField field;
 
-	[HideInInspector]
-	public bool needsUpdate = false;
+	private bool needsUpdate = false;
+	public delegate void UpdateRequest();
+	public event UpdateRequest update = () => { };
+
 
 	void Start() {
-		field = GetComponent<DensityField>();
-		field.update += new DensityField.NeedsUpdate(() => { needsUpdate = true; });
+
 		mesh = GetComponent<MeshFilter>().mesh;
 		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-		if(TryGetComponent(out MeshCollider collider)) collider.sharedMesh = mesh;
+
+		field = GetComponent<DensityField>();
+		field.update += RequestUpdate;
+		field.RequestUpdate();
+
+		if(TryGetComponent(out MeshCollider collider)) {
+			collider.sharedMesh = mesh;
+		}
+
 	}
 
 	void Update() {
 		if(needsUpdate) {
 			UpdateMesh();
 			needsUpdate = false;
+			update.Invoke();
 		}
 	}
 
 	void OnValidate() {
-		needsUpdate = true;
+		RequestUpdate();
 	}
 
 	void OnDestroy() {
 		DisposeBuffers();
+	}
+
+
+	public void RequestUpdate() {
+		needsUpdate = true;
 	}
 
 	void UpdateMesh() {
@@ -53,6 +68,7 @@ public class MarchingCubes : MonoBehaviour {
 
 	void GenerateMesh() {
 
+		if(field.points == null) field.CreateBuffers();
 		CreateBuffers();
 
 		// Set parameters for the compute shader.
@@ -61,8 +77,8 @@ public class MarchingCubes : MonoBehaviour {
 		shader.SetInts("size", field.size.x, field.size.y, field.size.z);
 		shader.SetFloat("cutoff", 0);
 
-		// Run rhe compute shader.
-		shader.Dispatch(0, field.size.x, field.size.y, field.size.z);
+		// Run the compute shader.
+		shader.Dispatch(0, field.size.x - 1, field.size.y - 1, field.size.z - 1);
 
 		// Get results from the compute shader.
 		ComputeBuffer.CopyCount(triBuffer, triCount, 0);
@@ -72,14 +88,15 @@ public class MarchingCubes : MonoBehaviour {
 		triBuffer.GetData(tris, 0, 0, count[0]);
 
 		// Create a list of verticies and indicies
+		int current = 0;
 		List<Vector3> points = new List<Vector3>(tris.Length * 3);
 		List<int> indicies = new List<int>(tris.Length * 3);
 		foreach(Triangle triangle in tris) {
-			indicies.Add(points.Count);
+			indicies.Add(current++);
 			points.Add(triangle.a);
-			indicies.Add(points.Count);
+			indicies.Add(current++);
 			points.Add(triangle.b);
-			indicies.Add(points.Count);
+			indicies.Add(current++);
 			points.Add(triangle.c);
 		}
 

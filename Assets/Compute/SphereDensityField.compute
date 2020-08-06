@@ -14,9 +14,6 @@ struct Value {
 [numthreads(1, 1, 1)]
 void ComputeSphere (uint3 id : SV_DispatchThreadID) {
 
-	if (!IsWithinSize(id))
-		return;
-
 	float4 p;
 	p.x = (float)id.x;
 	p.y = (float)id.y;
@@ -27,6 +24,7 @@ void ComputeSphere (uint3 id : SV_DispatchThreadID) {
 		p.w = radius - sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
 	}
 
+	p.w = clamp(p.w, -1, 1);
 	points[GetIndex(id)] = p;
 	return;
 
