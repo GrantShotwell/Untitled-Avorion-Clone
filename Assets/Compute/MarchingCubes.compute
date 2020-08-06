@@ -1,5 +1,6 @@
 #pragma kernel March
 #include "MarchingCubesTables.compute"
+#include "DensityFieldTools.compute"
 
 struct Triangle {
 	float3 a;
@@ -7,15 +8,10 @@ struct Triangle {
 	float3 c;
 };
 
-int3 size;
-float cutoff;
 AppendStructuredBuffer<Triangle> triangles;
 RWStructuredBuffer<float4> points;
 
-int GetIndex(uint3 id) {
-	// x + y*WIDTH + z*WIDTH*DEPTH
-	return id.x + size.x * (id.y + size.y * id.z);
-}
+float cutoff;
 
 float3 InterpolateVerticies(float4 v1, float4 v2) {
 	float t = (cutoff - v1.w) / (v2.w - v1.w);
@@ -26,6 +22,9 @@ float3 InterpolateVerticies(float4 v1, float4 v2) {
 
 [numthreads(1, 1, 1)]
 void March(uint3 id : SV_DispatchThreadID) {
+
+	if (!IsWithinSize(id))
+		return;
 
 	// Cube is defined by its corners.
 	float4 corners[8] = {

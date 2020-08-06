@@ -1,0 +1,16 @@
+﻿
+int3 size;
+
+bool IsWithinSize(uint3 id) {
+	// [0, size)
+	bool x = id.x >= 0 && id.x < (uint)size.x;
+	bool y = id.y >= 0 && id.y < (uint)size.y;
+	bool z = id.z >= 0 && id.z < (uint)size.z;
+	return x && y && z;
+}
+
+int GetIndex(uint3 id) {
+	// x + y*WIDTH + z*WIDTH*DEPTH
+	uint index = id.x + (uint)size.x * (id.y + (uint)size.y * id.z);
+	return (int)index;
+}

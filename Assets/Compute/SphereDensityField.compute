@@ -1,7 +1,8 @@
 ﻿#pragma kernel ComputeSphere
+#include "DensityFieldTools.compute"
 
-int3 size;
 RWStructuredBuffer<float4> points;
+
 float3 center;
 float radius;
 
@@ -10,13 +11,11 @@ struct Value {
 	float4 p;
 };
 
-int GetIndex(uint3 id) {
-	// x + y*WIDTH + z*WIDTH*DEPTH
-	return id.x + size.x * (id.y + size.y * id.z);
-}
-
 [numthreads(1, 1, 1)]
 void ComputeSphere (uint3 id : SV_DispatchThreadID) {
+
+	if (!IsWithinSize(id))
+		return;
 
 	float4 p;
 	p.x = (float)id.x;
