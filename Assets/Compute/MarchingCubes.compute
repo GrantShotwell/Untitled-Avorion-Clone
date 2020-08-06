@@ -12,9 +12,9 @@ float cutoff;
 AppendStructuredBuffer<Triangle> triangles;
 RWStructuredBuffer<float4> points;
 
-int GetIndex(uint3 index) {
+int GetIndex(uint3 id) {
 	// x + y*WIDTH + z*WIDTH*DEPTH
-	return index.x + size.x * (index.y + size.y * index.z);
+	return id.x + size.x * (id.y + size.y * id.z);
 }
 
 float3 InterpolateVerticies(float4 v1, float4 v2) {
