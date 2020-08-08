@@ -6,14 +6,16 @@ public class PlanetFace {
 
 	public Mesh mesh { get; private set; }
 	int resolution;
+	float radius;
 	Vector3 up, forward, right;
 
-	public PlanetFace(Mesh mesh, int resolution, Vector3 up) {
+	public PlanetFace(Mesh mesh, int resolution, Vector3 up, float radius) {
 		this.mesh = mesh;
 		this.resolution = resolution;
 		this.up = up;
 		forward = new Vector3(up.y, up.z, up.x);
 		right = Vector3.Cross(up, forward);
+		this.radius = radius;
 	}
 
 	public void GenerateMesh() {
@@ -31,7 +33,7 @@ public class PlanetFace {
 				Vector2 percent = (Vector2)index / maxIndex;
 				Vector3 point = up + (percent.x - 0.5f) * 2 * right
 								   + (percent.y - 0.5f) * 2 * forward;
-				vertices[i] = point.normalized;
+				vertices[i] = point.normalized * radius;
 
 				if(x != maxIndex && y != maxIndex) {
 					// Triangle 1

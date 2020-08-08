@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class UpdatableMonoBehaviour : MonoBehaviour {
+public abstract class UpdatableScriptableObject : ScriptableObject {
 
 	private bool needsUpdate = false;
 	private readonly IList<Action> updateActions = new List<Action>(1);

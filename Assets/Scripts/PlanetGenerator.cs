@@ -6,19 +6,13 @@ using UnityEngine;
 [SelectionBase]
 public class PlanetGenerator : UpdatableMonoBehaviour {
 
+	private PlanetSettings _settings = null;
+	public PlanetSettings settings;
 	[HideInInspector]
 	public (PlanetFace face, MeshFilter filter)[] faces;
-	[Tooltip("Material to apply to terrain mesh.")]
-	public Material material;
-	[Range(2, 256)]
-	public int resolution = 10;
 
 
-	private void Awake() {
-		update += () => {
-			CreateFaces();
-			GenerateMesh();
-		};
+	public void Start() {
 		RequestUpdate();
 	}
 
@@ -27,6 +21,8 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 	}
 
 	private void OnValidate() {
+		if(_settings) _settings.update -= RequestUpdate;
+		if(settings) settings.update += RequestUpdate;
 		RequestUpdate();
 	}
 
@@ -35,7 +31,7 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 	}
 
 
-	protected override void RequestedUpdate() {
+	protected override void OnUpdateRequest() {
 		CreateFaces();
 		GenerateMesh();
 	}
@@ -58,7 +54,7 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 
 			// Create MeshRenderer.
 			MeshRenderer renderer = go.AddComponent<MeshRenderer>();
-			renderer.material = material;
+			renderer.material = settings.material;
 
 			// Create MeshCollider.
 			MeshCollider collider = go.AddComponent<MeshCollider>();
@@ -66,7 +62,7 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 			collider.convex = false;
 
 			// Save this terrain face into the array.
-			faces[i] = (new PlanetFace(filter.sharedMesh, resolution, directions[i]), filter);
+			faces[i] = (new PlanetFace(filter.sharedMesh, settings.resolution, directions[i], settings.radius), filter);
 
 		}
 
