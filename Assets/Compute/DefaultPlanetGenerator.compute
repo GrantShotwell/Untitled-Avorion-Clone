@@ -11,10 +11,11 @@ void Generate (uint3 id : SV_DispatchThreadID) {
 	int index = GetIndex(id);
 	float3 vertex = vertices[index];
 
-	// Modify vertex.
-	vertex *= radius + (Noise(vertex) * radius) * 0.05f;
+	// Determine height.
+	float height = Noise(vertex) * 0.05f;
 
-	// Apply vertex.
+	// Apply height.
+	vertex *= radius + height * radius;
 	vertices[index] = vertex;
 
 }

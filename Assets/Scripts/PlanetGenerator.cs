@@ -18,10 +18,14 @@ public class PlanetGeneratorEditor : Editor {
 	}
 
 	public override void OnInspectorGUI() {
-		base.OnInspectorGUI();
-		Object target;
 
-		target = script.settings;
+		if(GUILayout.Button("Update Mesh")) {
+			script.RequestUpdate();
+		}
+
+		base.OnInspectorGUI();
+		
+		Object target = script.settings;
 		if(foldout_settings = EditorGUILayout.InspectorTitlebar(foldout_settings, target)) {
 			Editor editor = CreateEditor(target);
 			editor.OnInspectorGUI();
@@ -111,7 +115,7 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 			Transform child = transform.Find($"Terrain Face {i + 1}");
 			MeshFilter filter = child ? child.GetComponent<MeshFilter>() : null;
 			// Make sure to not leave any faces behind.
-			if(faces[i].filter) DestroyFace(faces[i]);
+			DestroyFace(faces[i]);
 			// Assign new face.
 			faces[i] = (null, filter);
 		}
