@@ -12,7 +12,7 @@ void Generate (uint3 id : SV_DispatchThreadID) {
 	float3 vertex = vertices[index];
 
 	// Modify vertex.
-	vertex *= radius + Noise(vertex);
+	vertex *= radius + (Noise(vertex) * radius) * 0.05f;
 
 	// Apply vertex.
 	vertices[index] = vertex;

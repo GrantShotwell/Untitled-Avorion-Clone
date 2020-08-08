@@ -6,9 +6,10 @@ public static class NoiseS3D {
 
 	public static void SetupShaderNoise(ComputeShader shader, int kernel) {
 		SetShaderVars(shader, new Vector2(0, 0), true, 1.0f, kernel);
-		using ComputeBuffer permBuffer = new ComputeBuffer(perm.Length, 4);
+		ComputeBuffer permBuffer = new ComputeBuffer(perm.Length, 4);
 		permBuffer.SetData(perm);
 		shader.SetBuffer(kernel, "perm", permBuffer);
+		permBuffer.Dispose();
 	}
 
 
