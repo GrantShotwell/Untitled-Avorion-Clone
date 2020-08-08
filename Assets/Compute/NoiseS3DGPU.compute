@@ -1,5 +1,4 @@
-﻿#pragma kernel ComputeNoise
-
+﻿
 uniform int normalize;
 
 uniform int octaves;
@@ -61,7 +60,18 @@ float dotF(int g[4], float x, float y, float z, float w) {
 // NOISE GENERATION CODE
 //
 
- float Noise(float x, float y) {
+float Noise(float v);
+float Noise(float2 v);
+float Noise(float3 v);
+float Noise(float4 v);
+
+float Noise(float v) {
+    return Noise(float2(v, 0));
+}
+
+ float Noise(float2 v) {
+     float x = v.x, y = v.y;
+
      float n0, n1, n2;
      float F2 = 0.5 * (sqrt(3.0) - 1.0);
      float s = (x + y) * F2;
@@ -116,13 +126,11 @@ float dotF(int g[4], float x, float y, float z, float w) {
      return 70.0 * (n0 + n1 + n2);
  }
 
-float Noise(float x) {
-    return Noise(x, 0);
-}
-
 
 //3D
-float Noise(float x, float y, float z) {
+float Noise(float3 v) {
+    float x = v.x, y = v.y, z = v.z;
+
     float n0, n1, n2, n3;
 
     float F3 = 1.0 / 3.0;
@@ -236,7 +244,8 @@ float Noise(float x, float y, float z) {
 }
 
 //4D
-float Noise(float x, float y, float z, float w) {
+float Noise(float4 v) {
+    float x = v.x, y = v.y, z = v.z, w = v.w;
 
     float F4 = (sqrt(5.0) - 1.0) / 4.0;
     float G4 = (5.0 - sqrt(5.0)) / 20.0;
@@ -373,21 +382,21 @@ void GetNoiseValues(float x, float y, float z, float w, int dimension, out float
 
         case 2:
             for (int o2 = 0; o2 < octaves; o2++) {
-                noiseValues[o2] = Noise(x * freq, y * freq);
+                noiseValues[o2] = Noise(float2(x * freq, y * freq));
                 freq *= 2.0;
             }
             break;
 
         case 3:
             for (int o3 = 0; o3 < octaves; o3++) {
-                noiseValues[o3] = Noise(x * freq, y * freq, z * freq);
+                noiseValues[o3] = Noise(float3(x * freq, y * freq, z * freq));
                 freq *= 2.0;
             }
             break;
 
         case 4:
             for (int o4 = 0; o4 < octaves; o4++) {
-                noiseValues[o4] = Noise(x * freq, y * freq, z * freq, w * freq);
+                noiseValues[o4] = Noise(float4(x * freq, y * freq, z * freq, w * freq));
                 freq *= 2.0;
             }
             break;
@@ -416,70 +425,4 @@ float NoiseCombinedOctaves(float x, float y, float z, float w) {
     float noiseValues[10];
     GetNoiseValues(x, y, z, w, 4, noiseValues);
     return CombineNoise(noiseValues);
-}
-
-[numthreads(16, 16, 1)]
-void ComputeNoise(uint3 id : SV_DispatchThreadID) {
-    if (id.x > reses.x || id.y > reses.y)
-        return;
-
-    float noiseValue = NoiseCombinedOctaves((id.x + offset.x) * noiseScale, (id.y + offset.y) * noiseScale);
-
-    if (normalize)
-        noiseValue = (noiseValue + 1) * 0.5;
-
-    Result[id.xy] = float4(noiseValue, noiseValue, noiseValue, 1);
-}
-
-
-
-#pragma kernel ComputeNoiseArray
-
-
-uniform StructuredBuffer<float>  float1Array;
-uniform StructuredBuffer<float2> float2Array;
-uniform StructuredBuffer<float3> float3Array;
-uniform StructuredBuffer<float4> float4Array;
-
-uniform RWStructuredBuffer<float> outputArray;
-
-uniform int dimension;
-
-[numthreads(16, 1, 1)]
-void ComputeNoiseArray(uint3 id : SV_DispatchThreadID) {
-
-    if (id.x >= outputArray.Length)
-        return;
-
-    switch (dimension) {
-        case 1:
-            float noiseValue = NoiseCombinedOctaves(float1Array[id.x] * noiseScale);
-            if (normalize)
-                noiseValue = (noiseValue + 1) * 0.5;
-            outputArray[id.x] = noiseValue;
-            break;
-
-        case 2:
-            float noiseValue2 = NoiseCombinedOctaves(float2Array[id.x].x * noiseScale, float2Array[id.x].y * noiseScale);
-            if (normalize)
-                noiseValue2 = (noiseValue2 + 1) * 0.5;
-            outputArray[id.x] = noiseValue2;
-            break;
-
-        case 3:
-            float noiseValue3 = NoiseCombinedOctaves(float3Array[id.x].x * noiseScale, float3Array[id.x].y * noiseScale, float3Array[id.x].z * noiseScale);
-            if (normalize)
-                noiseValue3 = (noiseValue3 + 1) * 0.5;
-            outputArray[id.x] = noiseValue3;
-            break;
-
-        case 4:
-            float noiseValue4 = NoiseCombinedOctaves(float4Array[id.x].r * noiseScale, float4Array[id.x].g * noiseScale,
-                                                     float4Array[id.x].b * noiseScale, float4Array[id.x].a * noiseScale);
-            if (normalize)
-                noiseValue4 = (noiseValue4 + 1) * 0.5;
-            outputArray[id.x] = noiseValue4;
-            break;
-    }
-
 }

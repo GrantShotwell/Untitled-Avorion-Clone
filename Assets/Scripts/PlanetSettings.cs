@@ -29,6 +29,13 @@ public class PlanetSettings : UpdatableScriptableObject {
 		shapeGenerator.SetInts("resolution", resolution, resolution);
 		shapeGenerator.SetFloat("radius", radius);
 
+		// Set parameters for NoiseS3D.
+		NoiseS3D.SetShaderVars(shapeGenerator, new Vector2(0, 0), true, 1.0f, 0);
+		using(ComputeBuffer permBuffer = new ComputeBuffer(NoiseS3D.perm.Length, 4)) {
+			permBuffer.SetData(NoiseS3D.perm);
+			shapeGenerator.SetBuffer(0, "perm", permBuffer);
+		}
+
 		// Get the compute shader's thread group sizes.
 		shapeGenerator.GetKernelThreadGroupSizes(0, out uint threadX, out uint threadY, out _);
 		// Run the compute shader.

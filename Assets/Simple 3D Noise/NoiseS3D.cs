@@ -35,7 +35,7 @@ public static class NoiseS3D {
 	private static int[] p = null;
 
 	private static int[] perm_ = null;
-	private static int[] perm {
+	public static int[] perm {
 		get {
 			if(perm_ == null)
 				SetupNoise();
@@ -483,7 +483,7 @@ public static class NoiseS3D {
 
 	static bool needsFakeBuffer = true;
 
-	private static void SetShaderVars(ComputeShader shader, Vector2 noiseOffset, bool normalize, float noiseScale, int kernel) {
+	public static void SetShaderVars(ComputeShader shader, Vector2 noiseOffset, bool normalize, float noiseScale, int kernel) {
 		shader.SetInt("octaves", octaves);
 		shader.SetFloat("falloff", falloff);
 
