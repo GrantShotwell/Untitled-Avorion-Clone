@@ -1,6 +1,39 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
+
+
+#region Editor
+#if UNITY_EDITOR
+
+[CustomEditor(typeof(PlanetGenerator))]
+public class PlanetGeneratorEditor : Editor {
+
+	PlanetGenerator script;
+	bool foldout_settings = true;
+
+	private void OnEnable() {
+		script = (PlanetGenerator)target;
+	}
+
+	public override void OnInspectorGUI() {
+		base.OnInspectorGUI();
+		Object target;
+
+		target = script.settings;
+		if(foldout_settings = EditorGUILayout.InspectorTitlebar(foldout_settings, target)) {
+			Editor editor = CreateEditor(target);
+			editor.OnInspectorGUI();
+		}
+
+	}
+
+}
+
+#endif
+#endregion
+
 
 [ExecuteInEditMode]
 [SelectionBase]
@@ -62,7 +95,7 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 			collider.convex = false;
 
 			// Save this terrain face into the array.
-			faces[i] = (new PlanetFace(filter.sharedMesh, settings.resolution, directions[i], settings.radius), filter);
+			faces[i] = (new PlanetFace(filter.sharedMesh, directions[i]), filter);
 
 		}
 
@@ -78,7 +111,7 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 			Transform child = transform.Find($"Terrain Face {i + 1}");
 			MeshFilter filter = child ? child.GetComponent<MeshFilter>() : null;
 			// Make sure to not leave any faces behind.
-			if(faces[i].filter) DestroyFace(faces[i].filter.gameObject);
+			if(faces[i].filter) DestroyFace(faces[i]);
 			// Assign new face.
 			faces[i] = (null, filter);
 		}
@@ -87,21 +120,25 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 	/// <summary>Destroys any terrain face objects that might already exist.</summary>
 	void ClearFaces() {
 		FindFaces();
-		foreach((_, MeshFilter filter) in faces) {
-			if(filter == null) continue;
-			DestroyFace(filter.gameObject);
+		foreach((PlanetFace, MeshFilter) face in faces) {
+			DestroyFace(face);
 		}
 	}
 
-	void DestroyFace(GameObject face) {
-		if(Application.isEditor) DestroyImmediate(face);
-		else Destroy(face);
+	void DestroyFace((PlanetFace, MeshFilter) face) {
+		if(face.Item1 != null) {
+			face.Item1.Dispose();
+		}
+		if(face.Item2) {
+			if(Application.isEditor) DestroyImmediate(face.Item2.gameObject);
+			else Destroy(face.Item2.gameObject);
+		}
 	}
 
 	public void GenerateMesh() {
 		if(faces == null) return;
 		foreach((PlanetFace face, _) in faces) {
-			face.GenerateMesh();
+			face.GenerateMesh(settings);
 		}
 	}
 

@@ -3,7 +3,10 @@ guid: c1a50c1f84e42944b8ca0d5d534314fc
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - sphereGenerator: {fileID: 7200000, guid: 4ba0091b616ad29429cbcc4e3e8ea0cd, type: 3}
+  - shapeGenerator: {fileID: 7200000, guid: aa8a00d41caaf484d88b044a703e323c, type: 3}
+  - material: {fileID: 2100000, guid: b4753f808b7a9c845b5f7ccf3cabbd52, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

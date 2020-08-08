@@ -1,0 +1,19 @@
+﻿#pragma kernel Generate
+#include "PlanetGeneratorTools.compute"
+
+float radius;
+
+[numthreads(1, 1, 1)]
+void Generate (uint3 id : SV_DispatchThreadID) {
+
+	// Get vertex.
+	int index = GetIndex(id);
+	float3 vertex = vertices[index];
+
+	// Modify vertex.
+	vertex *= radius;
+
+	// Apply vertex.
+	vertices[index] = vertex;
+
+}
