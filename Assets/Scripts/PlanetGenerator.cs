@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[ExecuteAlways]
+[ExecuteInEditMode]
 [SelectionBase]
-public class PlanetGenerator : MonoBehaviour {
+public class PlanetGenerator : UpdatableMonoBehaviour {
 
 	[HideInInspector]
 	public (PlanetFace face, MeshFilter filter)[] faces;
@@ -13,22 +13,17 @@ public class PlanetGenerator : MonoBehaviour {
 	[Range(2, 256)]
 	public int resolution = 10;
 
-	private bool needsUpdate = false;
-	public delegate void UpdateRequest();
-	public event UpdateRequest update = () => { };
 
-
-	private void Start() {
+	private void Awake() {
+		update += () => {
+			CreateFaces();
+			GenerateMesh();
+		};
 		RequestUpdate();
 	}
 
 	private void Update() {
-		if(needsUpdate) {
-			CreateFaces();
-			GenerateMesh();
-			needsUpdate = false;
-			update.Invoke();
-		}
+		TryUpdateRequest();
 	}
 
 	private void OnValidate() {
@@ -40,8 +35,9 @@ public class PlanetGenerator : MonoBehaviour {
 	}
 
 
-	public void RequestUpdate() {
-		needsUpdate = true;
+	protected override void RequestedUpdate() {
+		CreateFaces();
+		GenerateMesh();
 	}
 
 	void CreateFaces() {
