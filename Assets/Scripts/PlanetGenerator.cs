@@ -1,61 +1,42 @@
-﻿using System;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteAlways]
 [SelectionBase]
 public class PlanetGenerator : MonoBehaviour {
 
-	public ComputeShader sphereCompute;
-	public GameObject prefab;
-
-	/// <summary>The radius of the planet.</summary>
-	public float radius = 100;
-	/// <summary>The minimum distance from the radius to include in chunks</summary>
-	public float buffer = 100;
-
-	private Vector3Int gridSize = new Vector3Int(0, 0, 0);
-	public Vector3Int chunkSize;
-	public GameObject[,,] chunks = new GameObject[0, 0, 0];
+	[HideInInspector]
+	public (PlanetFace face, MeshFilter filter)[] faces;
+	[Tooltip("Material to apply to terrain mesh.")]
+	public Material material;
+	[Range(2, 256)]
+	public int resolution = 10;
 
 	private bool needsUpdate = false;
 	public delegate void UpdateRequest();
 	public event UpdateRequest update = () => { };
 
 
-	void Start() {
+	private void Start() {
 		RequestUpdate();
 	}
 
-	void Update() {
+	private void Update() {
 		if(needsUpdate) {
-			UpdateChunksArray();
-			UpdateChunkTerrain();
+			CreateFaces();
+			GenerateMesh();
 			needsUpdate = false;
 			update.Invoke();
 		}
 	}
 
-	void OnValidate() {
-
-		// Chunk size cannot be zero.
-		if(chunkSize.x < 1) chunkSize.x = 1;
-		if(chunkSize.y < 1) chunkSize.y = 1;
-		if(chunkSize.z < 1) chunkSize.z = 1;
-
-		if(sphereCompute != null) {
-
-			// Chunk sizes must be a multiple of thread counts.
-			sphereCompute.GetKernelThreadGroupSizes(0, out uint threadX, out uint threadY, out uint threadZ);
-			int x = (int)threadX, y = (int)threadY, z = (int)threadZ;
-			int dx = x - (chunkSize.x % x), dy = y - (chunkSize.y % y), dz = z - (chunkSize.z % z);
-			if(dx < x) chunkSize.x += dx;
-			if(dy < y) chunkSize.y += dy;
-			if(dz < z) chunkSize.z += dz;
-
-		}
-
-		// Values have been updated.
+	private void OnValidate() {
 		RequestUpdate();
+	}
 
+	private void OnDestroy() {
+		ClearFaces();
 	}
 
 
@@ -63,65 +44,73 @@ public class PlanetGenerator : MonoBehaviour {
 		needsUpdate = true;
 	}
 
-	void UpdateChunksArray() {
+	void CreateFaces() {
 
-		// Remove old array.
-		foreach(GameObject chunk in chunks) {
-			Destroy(chunk);
-		}
+		Vector3[] directions = new Vector3[6] { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
+		ClearFaces();
 
-		// Create new array.
-		gridSize = new Vector3Int(
-			Mathf.CeilToInt((radius + buffer) / chunkSize.x * 2),
-			Mathf.CeilToInt((radius + buffer) / chunkSize.y * 2),
-			Mathf.CeilToInt((radius + buffer) / chunkSize.z * 2));
-		chunks = new GameObject[gridSize.x, gridSize.y, gridSize.z];
+		for(int i = 0; i < 6; i++) {
 
-		// Fill new array.
-		for(int x = 0; x < gridSize.x; x++) {
-			for(int y = 0; y < gridSize.x; y++) {
-				for(int z = 0; z < gridSize.x; z++) {
+			// Create GameObject.
+			string name = $"Terrain Face {i + 1}";
+			GameObject go = new GameObject(name);
+			go.transform.parent = transform;
 
-					GameObject chunk = Instantiate(prefab, transform);
-					chunk.name = prefab.name;
-					chunk.transform.localPosition = new Vector3Int(x, y, z) * chunkSize;
-					chunk.transform.localPosition -= gridSize * chunkSize / 2;
-					chunks[x, y, z] = chunk;
+			// Create MeshFilter.
+			MeshFilter filter = go.AddComponent<MeshFilter>();
+			filter.sharedMesh = new Mesh();
 
-				}
-			}
+			// Create MeshRenderer.
+			MeshRenderer renderer = go.AddComponent<MeshRenderer>();
+			renderer.material = material;
+
+			// Create MeshCollider.
+			MeshCollider collider = go.AddComponent<MeshCollider>();
+			collider.sharedMesh = filter.sharedMesh;
+			collider.convex = false;
+
+			// Save this terrain face into the array.
+			faces[i] = (new PlanetFace(filter.sharedMesh, resolution, directions[i]), filter);
+
 		}
 
 	}
 
-	void UpdateChunkTerrain() {
-
-		foreach(GameObject chunk in chunks) {
-
-			// Set values for 'field'.
-			DensityField field = chunk.GetComponent<DensityField>();
-			field.size = chunkSize;
-			field.CreateBuffers();
-
-			// Center is 0, 0, 0: so local center is the local position.
-			Vector3 localCenter = -field.transform.localPosition;
-
-			// Set parameters for the compute shader.
-			sphereCompute.SetBuffer(0, "points", field.points);
-			sphereCompute.SetInts("size", chunkSize.x, chunkSize.y, chunkSize.z);
-			sphereCompute.SetFloats("center", localCenter.x, localCenter.y, localCenter.z);
-			sphereCompute.SetFloat("radius", radius);
-
-			// Get thread sizes.
-			sphereCompute.GetKernelThreadGroupSizes(0, out uint threadX, out uint threadY, out uint threadZ);
-			// Run the compute shader.
-			sphereCompute.Dispatch(0, chunkSize.x / (int)threadX, chunkSize.y / (int)threadY, chunkSize.z / (int)threadZ);
-
-			// Notify 'field' that it has been updated.
-			field.RequestUpdate();
-
+	/// <summary>Creates <see cref="faces"/> and populates it with any terrain face objects that might already exist.</summary>
+	void FindFaces() {
+		// Create 'faces' array if necessary.
+		if(faces == null) faces = new (PlanetFace face, MeshFilter filter)[6];
+		// Use Transform.Fild([child name]) to find terrain faces that already exist.
+		for(int i = 0; i < 6; i++) {
+			// Find face 'i'.
+			Transform child = transform.Find($"Terrain Face {i + 1}");
+			MeshFilter filter = child ? child.GetComponent<MeshFilter>() : null;
+			// Make sure to not leave any faces behind.
+			if(faces[i].filter) DestroyFace(faces[i].filter.gameObject);
+			// Assign new face.
+			faces[i] = (null, filter);
 		}
+	}
 
+	/// <summary>Destroys any terrain face objects that might already exist.</summary>
+	void ClearFaces() {
+		FindFaces();
+		foreach((_, MeshFilter filter) in faces) {
+			if(filter == null) continue;
+			DestroyFace(filter.gameObject);
+		}
+	}
+
+	void DestroyFace(GameObject face) {
+		if(Application.isEditor) DestroyImmediate(face);
+		else Destroy(face);
+	}
+
+	public void GenerateMesh() {
+		if(faces == null) return;
+		foreach((PlanetFace face, _) in faces) {
+			face.GenerateMesh();
+		}
 	}
 
 }

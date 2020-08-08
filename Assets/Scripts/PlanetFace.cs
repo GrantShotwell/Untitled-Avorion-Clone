@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FlatPlanetFace {
+public class PlanetFace {
 
 	public Mesh mesh { get; private set; }
 	int resolution;
 	Vector3 up, forward, right;
 
-	public FlatPlanetFace(Mesh mesh, int resolution, Vector3 up) {
+	public PlanetFace(Mesh mesh, int resolution, Vector3 up) {
 		this.mesh = mesh;
 		this.resolution = resolution;
 		this.up = up;
