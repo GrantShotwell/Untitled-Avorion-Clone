@@ -3,6 +3,15 @@ using UnityEngine;
 
 public static class NoiseS3D {
 
+
+	public static void SetupShaderNoise(ComputeShader shader, int kernel) {
+		SetShaderVars(shader, new Vector2(0, 0), true, 1.0f, kernel);
+		using ComputeBuffer permBuffer = new ComputeBuffer(perm.Length, 4);
+		permBuffer.SetData(perm);
+		shader.SetBuffer(kernel, "perm", permBuffer);
+	}
+
+
 	private static int seed_;
 
 	/// <summary> 
@@ -35,7 +44,7 @@ public static class NoiseS3D {
 	private static int[] p = null;
 
 	private static int[] perm_ = null;
-	public static int[] perm {
+	private static int[] perm {
 		get {
 			if(perm_ == null)
 				SetupNoise();
@@ -483,7 +492,7 @@ public static class NoiseS3D {
 
 	static bool needsFakeBuffer = true;
 
-	public static void SetShaderVars(ComputeShader shader, Vector2 noiseOffset, bool normalize, float noiseScale, int kernel) {
+	private static void SetShaderVars(ComputeShader shader, Vector2 noiseOffset, bool normalize, float noiseScale, int kernel) {
 		shader.SetInt("octaves", octaves);
 		shader.SetFloat("falloff", falloff);
 
