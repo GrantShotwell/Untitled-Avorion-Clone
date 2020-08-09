@@ -29,10 +29,6 @@ public static class ShaderNoise {
 		int[] random = Randomize(seed);
 		shader.SetInts("noise_random", random);
 
-		// Set constants.
-		//shader.SetFloat("G3", 1 / 6);
-		//shader.SetFloat("F3", 1 / 3);
-
 	}
 
 

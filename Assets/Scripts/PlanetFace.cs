@@ -24,6 +24,7 @@ public class PlanetFace {
 		int vertCount = settings.resolution * settings.resolution;
 		int trigCount = maxIndex * maxIndex * 6;
 		ComputeBuffer vertBuffer = new ComputeBuffer(vertCount, sizeof(float) * 3);
+		ComputeBuffer normBuffer = new ComputeBuffer(vertCount, sizeof(float) * 3);
 		ComputeBuffer trigBuffer = new ComputeBuffer(trigCount, sizeof(int));
 
 		// Set parameters for the compute shaders.
@@ -39,22 +40,25 @@ public class PlanetFace {
 		settings.sphereGenerator.GetKernelThreadGroupSizes(kernel, out uint threadX, out uint threadY, out _);
 		// Run the compute shaders.
 		settings.sphereGenerator.Dispatch(0, settings.resolution / (int)threadX, settings.resolution / (int)threadY, 1);
-		settings.ModifyUnitSphere(vertBuffer);
+		settings.ModifyUnitSphere(vertBuffer, normBuffer);
 
 		// Get the results from the compute shaders.
 		Vector3[] vertices = new Vector3[vertCount];
 		vertBuffer.GetData(vertices, 0, 0, vertCount);
+		Vector3[] normals = new Vector3[vertCount];
+		normBuffer.GetData(normals, 0, 0, vertCount);
 		int[] triangles = new int[trigCount];
 		trigBuffer.GetData(triangles, 0, 0, trigCount);
 
 		// Apply data to the mesh.
 		mesh.Clear();
 		mesh.vertices = vertices;
+		mesh.normals = normals;
 		mesh.triangles = triangles;
-		mesh.normals = vertices;
 
 		// Dispose compute buffers.
 		vertBuffer.Dispose();
+		normBuffer.Dispose();
 		trigBuffer.Dispose();
 
 	}

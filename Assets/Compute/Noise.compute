@@ -145,9 +145,9 @@ float Noise(float3 position) {
     double z2 = z0 - k2 + F3;
 
     // Offsets for last corner in (x,y,z)
-    double x3 = x0 - 0.5;
-    double y3 = y0 - 0.5;
-    double z3 = z0 - 0.5;
+    double x3 = x0 - double(0.5);
+    double y3 = y0 - double(0.5);
+    double z3 = z0 - double(0.5);
 
     // Work out the hashed gradient indices of the four simplex corners
     int ii = i & 0xff;

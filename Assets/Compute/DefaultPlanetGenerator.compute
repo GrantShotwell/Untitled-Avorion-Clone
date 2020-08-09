@@ -2,14 +2,19 @@
 #include "PlanetGeneratorTools.compute"
 #include "Noise.compute"
 
+// Shape Parameters
 float radius;
-float3 offset;
-float scale;
+float magnitude;
+
+// Normal Parameters
+float s;
+
+RWStructuredBuffer<float3> normals;
 
 float GetHeight(float3 vertex) {
 
 	// TODO:  Write code here!
-	float height = Noise((vertex + offset) * scale) / 2;
+	float height = Noise(vertex + radius) * magnitude / 2;
 	return height;
 
 }
@@ -19,9 +24,20 @@ void Generate (uint3 id : SV_DispatchThreadID) {
 
 	int index = GetIndex(id);
 	float3 vertex = vertices[index];
-
 	float height = GetHeight(vertex);
+	float3 center = float3(0, 0, 0);
+
+	float D = sqrt(1 + s * s);
+	float3 a = vertex;
+	float3 A = a * (radius + GetHeight(a));
+	float3 axis1 = normalize(cross(vertex, float3(0, 1, 0)));
+	float3 b = (axis1 * s + vertex) / D;
+	float3 B = b * (radius + GetHeight(b));
+	float3 axis2 = cross(vertex, axis1);
+	float3 c = (axis2 * s + vertex) / D;
+	float3 C = c * (radius + GetHeight(c));
 
 	vertices[index] = vertex * clamp(radius + height, radius * 0.5, radius * 1.5);
+	normals[index] = cross(B - A, C - A);
 
 }
