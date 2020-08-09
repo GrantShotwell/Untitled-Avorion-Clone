@@ -1,21 +1,27 @@
 ﻿#pragma kernel Generate
 #include "PlanetGeneratorTools.compute"
-#include "NoiseS3DGPU.compute"
+#include "Noise.compute"
 
 float radius;
+float3 offset;
+float scale;
+
+float GetHeight(float3 vertex) {
+
+	// TODO:  Write code here!
+	float height = Noise((vertex + offset) * scale) / 2;
+	return height;
+
+}
 
 [numthreads(1, 1, 1)]
 void Generate (uint3 id : SV_DispatchThreadID) {
 
-	// Get vertex.
 	int index = GetIndex(id);
 	float3 vertex = vertices[index];
 
-	// Determine height.
-	float height = Noise(vertex) * 0.05f;
+	float height = GetHeight(vertex);
 
-	// Apply height.
-	vertex *= radius + height * radius;
-	vertices[index] = vertex;
+	vertices[index] = vertex * clamp(radius + height, radius * 0.5, radius * 1.5);
 
 }

@@ -3,10 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlanetFace : IDisposable {
-
-	[HideInInspector]
-	public ComputeBuffer vertBuffer, trigBuffer;
+public class PlanetFace {
 
 	public Mesh mesh { get; private set; }
 	Vector3 up, right, forward;
@@ -26,18 +23,20 @@ public class PlanetFace : IDisposable {
 		int maxIndex = settings.resolution - 1;
 		int vertCount = settings.resolution * settings.resolution;
 		int trigCount = maxIndex * maxIndex * 6;
-		CreateBuffers(vertCount, trigCount);
+		ComputeBuffer vertBuffer = new ComputeBuffer(vertCount, sizeof(float) * 3);
+		ComputeBuffer trigBuffer = new ComputeBuffer(trigCount, sizeof(int));
 
 		// Set parameters for the compute shaders.
+		int kernel = sphere.FindKernel("Generate");
 		sphere.SetInts("resolution", settings.resolution, settings.resolution);
-		sphere.SetBuffer(0, "vertices", vertBuffer);
-		sphere.SetBuffer(0, "triangles", trigBuffer);
+		sphere.SetBuffer(kernel, "vertices", vertBuffer);
+		sphere.SetBuffer(kernel, "triangles", trigBuffer);
 		sphere.SetFloats("up", up.x, up.y, up.z);
 		sphere.SetFloats("right", right.x, right.y, right.z);
 		sphere.SetFloats("forward", forward.x, forward.y, forward.z);
 
 		// Get thread sizes.
-		settings.sphereGenerator.GetKernelThreadGroupSizes(0, out uint threadX, out uint threadY, out _);
+		settings.sphereGenerator.GetKernelThreadGroupSizes(kernel, out uint threadX, out uint threadY, out _);
 		// Run the compute shaders.
 		settings.sphereGenerator.Dispatch(0, settings.resolution / (int)threadX, settings.resolution / (int)threadY, 1);
 		settings.ModifyUnitSphere(vertBuffer);
@@ -52,29 +51,12 @@ public class PlanetFace : IDisposable {
 		mesh.Clear();
 		mesh.vertices = vertices;
 		mesh.triangles = triangles;
-		mesh.RecalculateNormals();
+		mesh.normals = vertices;
 
-	}
+		// Dispose compute buffers.
+		vertBuffer.Dispose();
+		trigBuffer.Dispose();
 
-	void CreateBuffers(int vertices, int triangles) {
-
-		DisposeBuffers();
-
-		vertBuffer = new ComputeBuffer(vertices, sizeof(float) * 3);
-
-		trigBuffer = new ComputeBuffer(triangles, sizeof(int));
-
-	}
-
-	void DisposeBuffers() {
-
-		vertBuffer?.Dispose();
-		trigBuffer?.Dispose();
-
-	}
-
-	public void Dispose() {
-		DisposeBuffers();
 	}
 
 }

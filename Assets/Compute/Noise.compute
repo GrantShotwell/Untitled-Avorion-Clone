@@ -1,0 +1,198 @@
+﻿
+/*
+ *
+ * This code is a translation of the original code found below to work as a compute shader function.
+ * Original .cs file from https://github.com/SebLague/Procedural-Planets/blob/master/Procedural%20Planet%20Noise/Noise.cs
+ *
+ */
+
+int noise_random[512];
+
+/// <summary>
+/// Generates value, typically in range [-1, 1]
+/// </summary>
+float Noise(float3 position) {
+
+    double F3 = double(1) / double(3);
+    double G3 = double(1) / double(6);
+
+	int Grad3[12][3] = {
+        {1, 1, 0}, {-1, 1, 0}, {1, -1, 0},
+        {-1, -1, 0}, {1, 0, 1}, {-1, 0, 1},
+        {1, 0, -1}, {-1, 0, -1}, {0, 1, 1},
+        {0, -1, 1}, {0, 1, -1}, {0, -1, -1}
+	};
+
+    double x = position.x;
+    double y = position.y;
+    double z = position.z;
+    double n0 = 0, n1 = 0, n2 = 0, n3 = 0;
+
+    // Noise contributions from the four corners
+    // Skew the input space to determine which simplex cell we're in
+    double s = (x + y + z) * F3;
+
+    // for 3D
+    int i, j, k;
+    double _i = x + s;
+    if (_i >= 0) i = (int)_i;
+    else i = (int)_i - 1;
+    double _j = y + s;
+    if (_j >= 0) j = (int)_j;
+    else j = (int)_j - 1;
+    double _k = z + s;
+    if (_k >= 0) k = (int)_k;
+    else k = (int)_k - 1;
+
+
+    double t = (i + j + k) * G3;
+
+    // The x,y,z distances from the cell origin
+    double x0 = x - (i - t);
+    double y0 = y - (j - t);
+    double z0 = z - (k - t);
+
+    // For the 3D case, the simplex shape is a slightly irregular tetrahedron.
+    // Determine which simplex we are in.
+    // Offsets for second corner of simplex in (i,j,k)
+    int i1, j1, k1;
+
+    // coords
+    int i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
+
+    if (x0 >= y0)
+    {
+        if (y0 >= z0)
+        {
+            // X Y Z order
+            i1 = 1;
+            j1 = 0;
+            k1 = 0;
+            i2 = 1;
+            j2 = 1;
+            k2 = 0;
+        }
+        else if (x0 >= z0)
+        {
+            // X Z Y order
+            i1 = 1;
+            j1 = 0;
+            k1 = 0;
+            i2 = 1;
+            j2 = 0;
+            k2 = 1;
+        }
+        else
+        {
+            // Z X Y order
+            i1 = 0;
+            j1 = 0;
+            k1 = 1;
+            i2 = 1;
+            j2 = 0;
+            k2 = 1;
+        }
+    }
+    else
+    {
+        // x0 < y0
+        if (y0 < z0)
+        {
+            // Z Y X order
+            i1 = 0;
+            j1 = 0;
+            k1 = 1;
+            i2 = 0;
+            j2 = 1;
+            k2 = 1;
+        }
+        else if (x0 < z0)
+        {
+            // Y Z X order
+            i1 = 0;
+            j1 = 1;
+            k1 = 0;
+            i2 = 0;
+            j2 = 1;
+            k2 = 1;
+        }
+        else
+        {
+            // Y X Z order
+            i1 = 0;
+            j1 = 1;
+            k1 = 0;
+            i2 = 1;
+            j2 = 1;
+            k2 = 0;
+        }
+    }
+
+    // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),
+    // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z),
+    // and
+    // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z),
+    // where c = 1/6.
+
+    // Offsets for second corner in (x,y,z) coords
+    double x1 = x0 - i1 + G3;
+    double y1 = y0 - j1 + G3;
+    double z1 = z0 - k1 + G3;
+
+    // Offsets for third corner in (x,y,z)
+    double x2 = x0 - i2 + F3;
+    double y2 = y0 - j2 + F3;
+    double z2 = z0 - k2 + F3;
+
+    // Offsets for last corner in (x,y,z)
+    double x3 = x0 - 0.5;
+    double y3 = y0 - 0.5;
+    double z3 = z0 - 0.5;
+
+    // Work out the hashed gradient indices of the four simplex corners
+    int ii = i & 0xff;
+    int jj = j & 0xff;
+    int kk = k & 0xff;
+
+    // Calculate the contribution from the four corners
+    double t0 = double(0.6) - x0 * x0 - y0 * y0 - z0 * z0;
+    if (t0 > 0)
+    {
+        t0 *= t0;
+        int gi0 = noise_random[ii + noise_random[jj + noise_random[kk]]] % 12;
+        double dot = double(Grad3[gi0][0]) * x0 + double(Grad3[gi0][1]) * y0 + double(Grad3[gi0][2]) * z0;
+        n0 = t0 * t0 * dot;
+    }
+
+    double t1 = double(0.6) - x1 * x1 - y1 * y1 - z1 * z1;
+    if (t1 > 0)
+    {
+        t1 *= t1;
+        int gi1 = noise_random[ii + i1 + noise_random[jj + j1 + noise_random[kk + k1]]] % 12;
+        double dot = double(Grad3[gi1][0]) * x1 + double(Grad3[gi1][1]) * y1 + double(Grad3[gi1][2]) * z1;
+        n1 = t1 * t1 * dot;
+    }
+
+    double t2 = double(0.6) - x2 * x2 - y2 * y2 - z2 * z2;
+    if (t2 > 0)
+    {
+        t2 *= t2;
+        int gi2 = noise_random[ii + i2 + noise_random[jj + j2 + noise_random[kk + k2]]] % 12;
+        double dot = double(Grad3[gi2][0]) * x2 + double(Grad3[gi2][1]) * y2 + double(Grad3[gi2][2]) * z2;
+        n2 = t2 * t2 * dot;
+    }
+
+    double t3 = double(0.6) - x3 * x3 - y3 * y3 - z3 * z3;
+    if (t3 > 0)
+    {
+        t3 *= t3;
+        int gi3 = noise_random[ii + 1 + noise_random[jj + 1 + noise_random[kk + 1]]] % 12;
+        double dot = double(Grad3[gi3][0]) * x3 + double(Grad3[gi3][1]) * y3 + double(Grad3[gi3][2]) * z3;
+        n3 = t3 * t3 * dot;
+    }
+
+    // Add contributions from each corner to get the final noise value.
+    // The result is scaled to stay just inside [-1,1]
+    return float((n0 + n1 + n2 + n3) * 32);
+
+}

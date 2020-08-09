@@ -10,10 +10,16 @@ public class PlanetSettings : UpdatableScriptableObject {
 
 	[Tooltip("Material to apply to terrain mesh.")]
 	public Material material;
-	[Range(2, 256)]
+	[Range(2, 255)]
 	public int resolution = 10;
-	[Range(1.0f, 1000.0f)]
+	[Range(1.0f, 100.0f)]
 	public float radius;
+
+	public Vector3 offset;
+	[Range(0.001f, 10.0f)]
+	public float scale;
+	[Range(0, 100)]
+	public int seed;
 
 
 	private void OnValidate() {
@@ -28,7 +34,9 @@ public class PlanetSettings : UpdatableScriptableObject {
 		shapeGenerator.SetBuffer(0, "vertices", vertices);
 		shapeGenerator.SetInts("resolution", resolution, resolution);
 		shapeGenerator.SetFloat("radius", radius);
-		NoiseS3D.SetupShaderNoise(shapeGenerator, 0);
+		shapeGenerator.SetFloats("offset", offset.x, offset.y, offset.z);
+		shapeGenerator.SetFloat("scale", scale);
+		ShaderNoise.SetupNoise(shapeGenerator, seed);
 
 		// Get the compute shader's thread group sizes.
 		shapeGenerator.GetKernelThreadGroupSizes(0, out uint threadX, out uint threadY, out _);

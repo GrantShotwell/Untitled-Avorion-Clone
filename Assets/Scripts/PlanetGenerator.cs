@@ -3,45 +3,43 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-
-#region Editor
-#if UNITY_EDITOR
-
-[CustomEditor(typeof(PlanetGenerator))]
-public class PlanetGeneratorEditor : Editor {
-
-	PlanetGenerator script;
-	bool foldout_settings = true;
-
-	private void OnEnable() {
-		script = (PlanetGenerator)target;
-	}
-
-	public override void OnInspectorGUI() {
-
-		if(GUILayout.Button("Update Mesh")) {
-			script.RequestUpdate();
-		}
-
-		base.OnInspectorGUI();
-		
-		Object target = script.settings;
-		if(foldout_settings = EditorGUILayout.InspectorTitlebar(foldout_settings, target)) {
-			Editor editor = CreateEditor(target);
-			editor.OnInspectorGUI();
-		}
-
-	}
-
-}
-
-#endif
-#endregion
-
-
 [ExecuteInEditMode]
 [SelectionBase]
 public class PlanetGenerator : UpdatableMonoBehaviour {
+
+	#region Editor
+	#if UNITY_EDITOR
+
+	[CustomEditor(typeof(PlanetGenerator))]
+	public class PlanetGeneratorEditor : Editor {
+
+		PlanetGenerator script;
+		bool foldout_settings = true;
+
+		private void OnEnable() {
+			script = (PlanetGenerator)target;
+		}
+
+		public override void OnInspectorGUI() {
+
+			if(GUILayout.Button("Update Mesh")) {
+				script.OnUpdateRequest();
+			}
+
+			base.OnInspectorGUI();
+
+			Object target = script.settings;
+			if(foldout_settings = EditorGUILayout.InspectorTitlebar(foldout_settings, target)) {
+				Editor editor = CreateEditor(target);
+				editor.OnInspectorGUI();
+			}
+
+		}
+
+	}
+
+	#endif
+	#endregion
 
 	private PlanetSettings _settings = null;
 	public PlanetSettings settings;
@@ -130,9 +128,6 @@ public class PlanetGenerator : UpdatableMonoBehaviour {
 	}
 
 	void DestroyFace((PlanetFace, MeshFilter) face) {
-		if(face.Item1 != null) {
-			face.Item1.Dispose();
-		}
 		if(face.Item2) {
 			if(Application.isEditor) DestroyImmediate(face.Item2.gameObject);
 			else Destroy(face.Item2.gameObject);
