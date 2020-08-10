@@ -5,19 +5,22 @@ using UnityEngine;
 
 public class PlanetFace {
 
+	public enum GenerationResult { Success = 0b0011, NotSculpted = 0b1001, Failure = 0b1100 }
+
 	public Mesh mesh { get; private set; }
 	Vector3 up, right, forward;
 
-	public PlanetFace(Mesh mesh, Vector3 up) {
-		this.mesh = mesh;
+	public PlanetFace(Vector3 up) {
+		mesh = new Mesh();
 		this.up = up;
 		forward = new Vector3(up.y, up.z, up.x);
 		right = Vector3.Cross(up, forward);
 	}
 
-	public void GenerateMesh(PlanetSettings settings) {
+	public GenerationResult CreateUnitSphereFace(PlanetSettings settings) {
 
-		ComputeShader sphere = settings.sphereGenerator;
+		ComputeShader sphere = settings.sphere;
+		if(!sphere) return GenerationResult.Failure;
 
 		// Create buffers for the compute shaders.
 		int maxIndex = settings.resolution - 1;
@@ -37,10 +40,10 @@ public class PlanetFace {
 		sphere.SetFloats("forward", forward.x, forward.y, forward.z);
 
 		// Get thread sizes.
-		settings.sphereGenerator.GetKernelThreadGroupSizes(kernel, out uint threadX, out uint threadY, out _);
+		sphere.GetKernelThreadGroupSizes(kernel, out uint threadX, out uint threadY, out _);
 		// Run the compute shaders.
-		settings.sphereGenerator.Dispatch(0, settings.resolution / (int)threadX, settings.resolution / (int)threadY, 1);
-		settings.ModifyUnitSphere(vertBuffer, normBuffer);
+		sphere.Dispatch(0, settings.resolution / (int)threadX, settings.resolution / (int)threadY, 1);
+		bool sculpted = settings.sculpter.ModifyUnitSphere(settings.resolution, ref vertBuffer, ref normBuffer);
 
 		// Get the results from the compute shaders.
 		Vector3[] vertices = new Vector3[vertCount];
@@ -50,16 +53,18 @@ public class PlanetFace {
 		int[] triangles = new int[trigCount];
 		trigBuffer.GetData(triangles, 0, 0, trigCount);
 
-		// Apply data to the mesh.
+		// Apply the results to the mesh.
 		mesh.Clear();
 		mesh.vertices = vertices;
 		mesh.normals = normals;
 		mesh.triangles = triangles;
 
-		// Dispose compute buffers.
+		// Dispose the compute buffers.
 		vertBuffer.Dispose();
 		normBuffer.Dispose();
 		trigBuffer.Dispose();
+
+		return sculpted ? GenerationResult.Success : GenerationResult.NotSculpted;
 
 	}
 

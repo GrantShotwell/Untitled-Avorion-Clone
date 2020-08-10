@@ -20,5 +20,7 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs: []
-    m_Floats: []
-    m_Colors: []
+    m_Floats:
+    - heightBase: 500
+    m_Colors:
+    - heightRange: {r: 0.95, g: 1.05, b: 0, a: 0}

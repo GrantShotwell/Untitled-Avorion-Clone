@@ -2,6 +2,7 @@
 
 int2 resolution;
 RWStructuredBuffer<float3> vertices;
+RWStructuredBuffer<float3> normals;
 
 int GetIndex(uint3 id) {
 	// Flattens a 2D array.

@@ -9,8 +9,6 @@ float magnitude;
 // Normal Parameters
 float s;
 
-RWStructuredBuffer<float3> normals;
-
 float GetHeight(float3 vertex) {
 
 	// TODO:  Write code here!
