@@ -15,4 +15,4 @@ MonoBehaviour:
   shader: {fileID: 7200000, guid: aa8a00d41caaf484d88b044a703e323c, type: 3}
   seed: 1
   radius: 500
-  magnitude: 69.9
+  magnitude: 20
