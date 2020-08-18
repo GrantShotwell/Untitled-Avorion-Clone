@@ -1,12 +1,4 @@
 ﻿
-
-int2 resolution;
+uint2 resolution;
 RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float3> normals;
-
-int GetIndex(uint3 id) {
-	// Flattens a 2D array.
-	uint2 usize = uint2((uint)resolution.x, (uint)resolution.y);
-	uint index = (id.x) + (id.y * usize.x);
-	return (int)index;
-}

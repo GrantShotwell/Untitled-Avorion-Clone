@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 using static PlanetFace;
@@ -17,20 +19,31 @@ public class Planet : UpdatableMonoBehaviour {
 
 		Planet script;
 		bool foldout_settings = true;
+		Editor editor_settings;
 		bool foldout_sculpter = true;
+		Editor editor_sculpter;
 
 		private void OnEnable() {
 			script = (Planet)target;
+			editor_settings = CreateEditor(script.settings);
+			editor_sculpter = CreateEditor(script.settings.sculpter);
 		}
 
 		public override void OnInspectorGUI() {
 
 			if(GUILayout.Button("Update Mesh")) {
-				script.GenerateMesh(true);
+				script.GenerateMeshes(true);
+			}
+
+			float detail = EditorGUILayout.Slider("Detail", script.detail, 0.00f, 1.00f);
+			if(script.detail != detail) {
+				script.detail = detail;
+				script.SelectMesh();
 			}
 
 			base.OnInspectorGUI();
 
+			// "Settings"
 			if(
 				script.settings
 				&& (foldout_settings = EditorGUILayout.InspectorTitlebar(foldout_settings, script.settings))
@@ -39,6 +52,7 @@ public class Planet : UpdatableMonoBehaviour {
 				editor.OnInspectorGUI();
 			}
 
+			// "Sculpter"
 			if(
 				script.settings && script.settings.sculpter
 				&& (foldout_sculpter = EditorGUILayout.InspectorTitlebar(foldout_sculpter, script.settings.sculpter))
@@ -63,15 +77,19 @@ public class Planet : UpdatableMonoBehaviour {
 	MeshFilter filter;
 	new MeshCollider collider;
 
+	[HideInInspector]
+	public float detail = 0;
+	readonly Mesh[] meshes = new Mesh[4];
+
 	public void Start() {
-		filter = GetComponent<MeshFilter>();
-		collider = GetComponent<MeshCollider>();
+		ValidateFields();
 		CreateFaces();
 		RequestUpdate();
 	}
 
 	private void Update() {
 		TryUpdateRequest();
+		SelectMesh();
 	}
 
 	private void OnValidate() {
@@ -89,7 +107,32 @@ public class Planet : UpdatableMonoBehaviour {
 
 
 	protected override void OnUpdateRequest() {
-		GenerateMesh();
+		ValidateFields();
+		GenerateMeshes();
+		SelectMesh();
+	}
+
+	void ValidateFields() {
+
+		if(!filter) filter = GetComponent<MeshFilter>();
+
+		if(!collider) collider = GetComponent<MeshCollider>();
+
+		for(int i = 0; i < meshes.Length; i++) {
+			if(!meshes[i]) meshes[i] = new Mesh() { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+		}
+
+	}
+
+	void SelectMesh() {
+
+		int lod = Mathf.CeilToInt((1 - detail) * meshes.Length - 1);
+		if(lod >= meshes.Length) lod = meshes.Length - 1;
+		else if(lod <= 0) lod = 0;
+
+		filter.sharedMesh = meshes[lod];
+		collider.sharedMesh = meshes[0];
+
 	}
 
 	void CreateFaces() {
@@ -103,7 +146,7 @@ public class Planet : UpdatableMonoBehaviour {
 
 	}
 
-	public void GenerateMesh(bool forced = false) {
+	public void GenerateMeshes(bool forced = false) {
 
 		// Get mesh filter.
 		if(!filter) filter = GetComponent<MeshFilter>();
@@ -126,12 +169,21 @@ public class Planet : UpdatableMonoBehaviour {
 			return;
 		}
 
-		// Generate then combine meshes.
-		Mesh combined = new Mesh();
+		// Generate meshes.
+		GenerateMesh(ref meshes[0], 1.00f, forced);
+		GenerateMesh(ref meshes[1], 0.90f, forced);
+		GenerateMesh(ref meshes[2], 0.60f, forced);
+		GenerateMesh(ref meshes[3], 0.40f, forced);
+
+	}
+
+	void GenerateMesh(ref Mesh mesh, float detail, bool forced) {
+
+		// Generate meshes.
 		CombineInstance[] meshInfo = new CombineInstance[6];
 		for(int i = 0; i < 6; i++) {
 
-			GenerationResult result = faces[i].CreateUnitSphereFace(settings);
+			GenerationResult result = faces[i].GenerateFace(settings, detail);
 
 			if((result & GenerationResult.Success) != 0) {
 				meshInfo[i].mesh = faces[i].mesh;
@@ -151,11 +203,10 @@ public class Planet : UpdatableMonoBehaviour {
 			}
 
 		}
-		combined.CombineMeshes(meshInfo, true, true);
 
-		// Apply combined mesh.
-		filter.sharedMesh = combined;
-		collider.sharedMesh = combined;
+		// Combine meshes.
+		mesh.Clear();
+		mesh.CombineMeshes(meshInfo);
 
 	}
 

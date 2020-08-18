@@ -20,7 +20,7 @@ float GetHeight(float3 vertex) {
 [numthreads(1, 1, 1)]
 void Generate (uint3 id : SV_DispatchThreadID) {
 
-	int index = GetIndex(id);
+	int index = id.x + id.y * resolution.x;
 	float3 vertex = vertices[index];
 	float height = GetHeight(vertex);
 	float3 center = float3(0, 0, 0);

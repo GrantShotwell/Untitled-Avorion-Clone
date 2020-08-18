@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c1a50c1f84e42944b8ca0d5d534314fc, type: 3}
-  m_Name: Default Planet Settings
+  m_Name: Map256 Planet Settings
   m_EditorClassIdentifier: 
   sphere: {fileID: 7200000, guid: 4ba0091b616ad29429cbcc4e3e8ea0cd, type: 3}
-  sculpter: {fileID: 11400000, guid: 6659c7bfc044a854cb885406e5b82943, type: 2}
-  material: {fileID: 2100000, guid: 0afa4b96649c8134fa4a47a4e6b17fdf, type: 2}
-  resolution: 4
+  sculpter: {fileID: 11400000, guid: 04ad841330f5cd545b01921546f284b0, type: 2}
+  material: {fileID: 2100000, guid: b4753f808b7a9c845b5f7ccf3cabbd52, type: 2}
+  resolution: 73

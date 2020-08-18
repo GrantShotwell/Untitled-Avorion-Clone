@@ -17,14 +17,21 @@ public class PlanetFace {
 		right = Vector3.Cross(up, forward);
 	}
 
-	public GenerationResult CreateUnitSphereFace(PlanetSettings settings) {
+	/// <summary>
+	/// Attempts to modify <see cref="mesh"/> .
+	/// </summary>
+	/// <param name="settings">The <see cref="PlanetSettings"/> to generate the face from.</param>
+	/// <param name="lod">A percentage of detail.</param>
+	/// <returns>Returns if the attempt was a success or failure.</returns>
+	public GenerationResult GenerateFace(PlanetSettings settings, float lod) {
 
 		ComputeShader sphere = settings.sphere;
 		if(!sphere) return GenerationResult.Failure;
 
 		// Create buffers for the compute shaders.
-		int maxIndex = settings.resolution - 1;
-		int vertCount = settings.resolution * settings.resolution;
+		int resolution = Mathf.Clamp(Mathf.CeilToInt(settings.resolution * lod), PlanetSettings.minRes, PlanetSettings.maxRes);
+		int maxIndex = resolution - 1;
+		int vertCount = resolution * resolution;
 		int trigCount = maxIndex * maxIndex * 6;
 		ComputeBuffer vertBuffer = new ComputeBuffer(vertCount, sizeof(float) * 3);
 		ComputeBuffer normBuffer = new ComputeBuffer(vertCount, sizeof(float) * 3);
@@ -32,7 +39,7 @@ public class PlanetFace {
 
 		// Set parameters for the compute shaders.
 		int kernel = sphere.FindKernel("Generate");
-		sphere.SetInts("resolution", settings.resolution, settings.resolution);
+		sphere.SetInts("resolution", resolution, resolution);
 		sphere.SetBuffer(kernel, "vertices", vertBuffer);
 		sphere.SetBuffer(kernel, "triangles", trigBuffer);
 		sphere.SetFloats("up", up.x, up.y, up.z);
@@ -42,8 +49,8 @@ public class PlanetFace {
 		// Get thread sizes.
 		sphere.GetKernelThreadGroupSizes(kernel, out uint threadX, out uint threadY, out _);
 		// Run the compute shaders.
-		sphere.Dispatch(0, settings.resolution / (int)threadX, settings.resolution / (int)threadY, 1);
-		bool sculpted = settings.sculpter.ModifyUnitSphere(settings.resolution, ref vertBuffer, ref normBuffer);
+		sphere.Dispatch(0, resolution / (int)threadX, resolution / (int)threadY, 1);
+		bool sculpted = settings.sculpter.ModifyUnitSphere(resolution, ref vertBuffer, ref normBuffer);
 
 		// Get the results from the compute shaders.
 		Vector3[] vertices = new Vector3[vertCount];

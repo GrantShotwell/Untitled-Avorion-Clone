@@ -6,13 +6,15 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Planets/Settings Asset")]
 public class PlanetSettings : UpdatableScriptableObject {
 
+	public const int minRes = 2, maxRes = 256;
+
 	public ComputeShader sphere;
 	private PlanetSculpter _sculpter = null;
 	public PlanetSculpter sculpter;
 
 	[Tooltip("Material to apply to terrain mesh.")]
 	public Material material;
-	[Range(2, 100)]
+	[Range(minRes, maxRes)]
 	public int resolution;
 
 	private void OnValidate() {
