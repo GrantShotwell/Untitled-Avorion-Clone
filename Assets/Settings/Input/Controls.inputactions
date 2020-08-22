@@ -89,6 +89,17 @@
                     "isPartOfComposite": true
                 },
                 {
+                    "name": "",
+                    "id": "edb3392a-650d-4798-8060-5c8e9ff9dbcb",
+                    "path": "<Gamepad>/leftStick/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Default",
+                    "action": "Move X",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
                     "name": "Keyboard",
                     "id": "e4c12211-1541-4b55-ba37-088d47cd42f1",
                     "path": "1DAxis",
@@ -114,6 +125,39 @@
                     "name": "negative",
                     "id": "f36cdf93-e654-48b7-91ad-d69074fa7503",
                     "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Default",
+                    "action": "Move Y",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Triggers",
+                    "id": "d0b894bf-4c41-4815-b205-6ec427dd66b7",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move Y",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "positive",
+                    "id": "57a0f439-810a-4b4d-9782-f6c2cb0966e8",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Default",
+                    "action": "Move Y",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "negative",
+                    "id": "11b671f4-3a46-4939-adc6-fbf127f4c7c9",
+                    "path": "<Gamepad>/leftTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "Default",
@@ -153,6 +197,17 @@
                     "action": "Move Z",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "7431ec12-4b3e-41af-a6d0-5737dde00920",
+                    "path": "<Gamepad>/leftStick/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Default",
+                    "action": "Move Z",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "Keyboard",
@@ -199,6 +254,17 @@
                     "isPartOfComposite": false
                 },
                 {
+                    "name": "",
+                    "id": "27ff08f8-7bd3-4e62-9634-4e519aa7e701",
+                    "path": "<Gamepad>/rightStick/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Default",
+                    "action": "Look X",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
                     "name": "Keyboard",
                     "id": "974a789f-2290-43d9-9b5a-f99fae8f8f2d",
                     "path": "1DAxis",
@@ -224,6 +290,39 @@
                     "name": "negative",
                     "id": "22575fa3-a225-4d3d-a250-4d592bcc1b40",
                     "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Default",
+                    "action": "Look Z",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Shoulders",
+                    "id": "1eb54d97-4f99-4304-b5cc-bfa425192027",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look Z",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "positive",
+                    "id": "6d3998f6-48cb-4d12-a677-168c98015590",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Default",
+                    "action": "Look Z",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "negative",
+                    "id": "a6381a43-0276-4014-a14d-e64d66da9ae1",
+                    "path": "<Gamepad>/leftShoulder",
                     "interactions": "",
                     "processors": "",
                     "groups": "Default",
@@ -268,6 +367,17 @@
                     "name": "",
                     "id": "c20fb54a-4bdf-4db0-bd68-5bb2db063b67",
                     "path": "<Pointer>/delta/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Default",
+                    "action": "Look Y",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5a876218-fc8e-49e0-8229-df69e6e0e119",
+                    "path": "<Gamepad>/rightStick/x",
                     "interactions": "",
                     "processors": "",
                     "groups": "Default",

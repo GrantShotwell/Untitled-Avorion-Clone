@@ -5,11 +5,11 @@
 // Shape Parameters
 float radius;
 float magnitude;
+samplerCUBE cubemap;
 
 float GetHeight(float3 vertex) {
 
-	// TODO:  Write code here!
-	float height = Noise(vertex + radius) * magnitude / 2;
+	float height = (texCUBE(cubemap, vertex, 1, 1).x - 0.5) * magnitude / 2;
 	return height;
 
 }

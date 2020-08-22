@@ -12,14 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9998991228db20844af62bf1480b97f6, type: 3}
   m_Name: Map256 Planet Sculpter
   m_EditorClassIdentifier: 
-  shader: {fileID: 0}
+  shader: {fileID: 7200000, guid: a1dd1fed114323d4c9cfc61a9fb65b6a, type: 3}
   seed: 1
-  radius: 0
-  magnitude: 0
-  maps:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  radius: 500
+  magnitude: 1
+  cubemap: {fileID: 8900000, guid: 8f6e5577988c7c342be86e27b1705a3f, type: 2}

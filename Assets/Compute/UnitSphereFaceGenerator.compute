@@ -1,25 +1,25 @@
 ﻿#pragma kernel Generate
 
 int2 resolution;
-RWStructuredBuffer<float3> vertices;
+RWStructuredBuffer<float3> vectors;
 RWStructuredBuffer<int> triangles;
 
 float3 up;
 float3 right;
 float3 forward;
 
-[numthreads(1, 1, 1)]
+[numthreads(1, 1, 6)]
 void Generate(uint3 id : SV_DispatchThreadID) {
 
-	int2 index = int2((int)id.x, (int)id.y);
-	int i = index.x + index.y * resolution.x;
-	int2 maxIndex = int2(resolution.x - 1, resolution.y - 1);
+	uint i = id.x + id.y * resolution.x + id.z * resolution.x * resolution.y;
+	uint2 index = id.xy;
+	uint2 maxIndex = int2(resolution.x - 1, resolution.y - 1);
 
 	float2 percent = (float2)index / (float2)maxIndex;
 	float3 vertex = up + (percent.x - 0.5f) * 2 * right
 	                   + (percent.y - 0.5f) * 2 * forward;
 
-	vertices[i] = normalize(vertex);
+	vectors[i] = normalize(vertex);
 
 	if (index.x != maxIndex.x && index.y != maxIndex.y) {
 		int t = (i - index.y) * 6;

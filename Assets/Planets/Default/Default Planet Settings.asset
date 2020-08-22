@@ -15,4 +15,4 @@ MonoBehaviour:
   sphere: {fileID: 7200000, guid: 4ba0091b616ad29429cbcc4e3e8ea0cd, type: 3}
   sculpter: {fileID: 11400000, guid: 6659c7bfc044a854cb885406e5b82943, type: 2}
   material: {fileID: 2100000, guid: 0afa4b96649c8134fa4a47a4e6b17fdf, type: 2}
-  resolution: 4
+  resolution: 256

@@ -1,4 +1,7 @@
 ﻿
 uint2 resolution;
+RWStructuredBuffer<float> heights;
+RWStructuredBuffer<float3> vectors;
 RWStructuredBuffer<float3> vertices;
 RWStructuredBuffer<float3> normals;
+float s;
